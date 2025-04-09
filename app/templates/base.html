@@ -64,53 +64,33 @@
   transform: scale(1.05);
 }
 /* Smoke trail effect */
-body.forge-glow::after {
-  content: '';
+.smoke-trail {
   position: fixed;
-  top: var(--y);
-  left: var(--x);
   width: 12px;
   height: 12px;
-  background: radial-gradient(circle, rgba(255,255,255,0.4), transparent);
-  border-radius: 50%;
   pointer-events: none;
+  background: radial-gradient(circle, rgba(255,255,255,0.15), transparent);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
   z-index: 9999;
-  animation: smokeTrail 0.7s ease-out forwards;
+  animation: fadeOutTrail 1s ease-out forwards;
 }
 
-@keyframes smokeTrail {
+@keyframes fadeOutTrail {
   0% {
     opacity: 1;
-    transform: scale(1);
+    transform: scale(1) translate(-50%, -50%);
   }
   100% {
     opacity: 0;
-    transform: scale(2);
+    transform: scale(2.5) translate(-50%, -50%);
   }
 }
 
 
   </style>
 </head>
-<script>
-    const forge = document.querySelector('.navbar-brand');
-  
-    forge.addEventListener('mouseenter', () => {
-      let counter = 0;
-      const duration = 1500; // 1.5 seconds of trail
-      const interval = setInterval(() => {
-        document.body.classList.add('forge-glow');
-        setTimeout(() => document.body.classList.remove('forge-glow'), 700);
-        counter += 100;
-        if (counter >= duration) clearInterval(interval);
-      }, 100);
-    });
-  
-    document.addEventListener('mousemove', (e) => {
-      document.body.style.setProperty('--x', `${e.clientX}px`);
-      document.body.style.setProperty('--y', `${e.clientY}px`);
-    });
-  </script>
+
   
 <body>
 
@@ -133,6 +113,40 @@ body.forge-glow::after {
 <main class="container py-5">
   {% block content %}{% endblock %}
 </main>
-
+<script>
+    const forge = document.querySelector('.navbar-brand');
+  
+    forge.addEventListener('mouseenter', () => {
+      let duration = 3500; // ms
+      let start = Date.now();
+  
+      const trailInterval = setInterval(() => {
+        const now = Date.now();
+        if (now - start > duration) {
+          clearInterval(trailInterval);
+          return;
+        }
+  
+        const trail = document.createElement('div');
+        trail.className = 'smoke-trail';
+        trail.style.left = `${mouseX}px`;
+        trail.style.top = `${mouseY}px`;
+        document.body.appendChild(trail);
+  
+        setTimeout(() => {
+          trail.remove();
+        }, 1000);
+      }, 50);
+    });
+  
+    let mouseX = 0;
+    let mouseY = 0;
+  
+    document.addEventListener('mousemove', (e) => {
+      mouseX = e.clientX;
+      mouseY = e.clientY;
+    });
+  </script>
+  
 </body>
 </html>
