@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block content %}
+    <form method="POST">
+        {{ form.hidden_tag() }}
+        {{ form.duration.label }} {{ form.duration() }}<br>
+        {{ form.depth.label }} {{ form.depth() }}<br>
+        {{ form.impact.label }} {{ form.impact() }}<br>
+        {{ form.category.label }} {{ form.category() }}<br>
+        {{ form.notes.label }} {{ form.notes() }}<br>
+        {{ form.submit() }}
+    </form>
+
+    <h2>Logged Sessions</h2>
+    <ul>
+        {% for s in sessions %}
+            <li>
+                <strong>{{ s.category or "No Category" }}</strong> - {{ s.duration }}h | Depth: {{ s.depth }} | Impact: {{ s.impact }}<br>
+                <em>{{ s.notes }}</em> <small>({{ s.timestamp.strftime('%Y-%m-%d %H:%M') }})</small>
+            </li>
+        {% endfor %}
+    </ul>
+{% endblock %}
