@@ -63,9 +63,55 @@
   text-shadow: 0 0 8px #e25822, 0 0 16px #e25822;
   transform: scale(1.05);
 }
+/* Smoke trail effect */
+body.forge-glow::after {
+  content: '';
+  position: fixed;
+  top: var(--y);
+  left: var(--x);
+  width: 12px;
+  height: 12px;
+  background: radial-gradient(circle, rgba(255,255,255,0.4), transparent);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 9999;
+  animation: smokeTrail 0.7s ease-out forwards;
+}
+
+@keyframes smokeTrail {
+  0% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(2);
+  }
+}
+
 
   </style>
 </head>
+<script>
+    const forge = document.querySelector('.navbar-brand');
+  
+    forge.addEventListener('mouseenter', () => {
+      let counter = 0;
+      const duration = 1500; // 1.5 seconds of trail
+      const interval = setInterval(() => {
+        document.body.classList.add('forge-glow');
+        setTimeout(() => document.body.classList.remove('forge-glow'), 700);
+        counter += 100;
+        if (counter >= duration) clearInterval(interval);
+      }, 100);
+    });
+  
+    document.addEventListener('mousemove', (e) => {
+      document.body.style.setProperty('--x', `${e.clientX}px`);
+      document.body.style.setProperty('--y', `${e.clientY}px`);
+    });
+  </script>
+  
 <body>
 
 <nav class="navbar navbar-expand-lg shadow-sm">
