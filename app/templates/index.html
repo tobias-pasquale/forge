@@ -1,76 +1,84 @@
 {% extends "base.html" %}
 {% block content %}
 
-<div class="row mb-4">
-    <div class="col-md-6">
-        <div class="card bg-success text-white p-3">
-            <h5>Total Hours Logged</h5>
-            <h2>{{ total_hours }} hrs</h2>
-        </div>
+<!-- Dashboard Cards -->
+<div class="row g-4 mb-5">
+  <div class="col-md-6 col-lg-3">
+    <div class="card text-center p-3">
+      <h5>Total Hours</h5>
+      <h2>{{ total_hours }}</h2>
     </div>
-    <div class="col-md-6">
-        <div class="card bg-info text-white p-3">
-            <h5>Top Category</h5>
-            <h2>{{ top_category }}</h2>
-        </div>
+  </div>
+  <div class="col-md-6 col-lg-3">
+    <div class="card text-center p-3">
+      <h5>Top Category</h5>
+      <h2>{{ top_category }}</h2>
     </div>
+  </div>
+  <div class="col-md-6 col-lg-3">
+    <div class="card text-center p-3">
+      <h5>Avg. Depth</h5>
+      <h2>{{ avg_depth }}</h2>
+    </div>
+  </div>
+  <div class="col-md-6 col-lg-3">
+    <div class="card text-center p-3">
+      <h5>Avg. Impact</h5>
+      <h2>{{ avg_impact }}</h2>
+    </div>
+  </div>
 </div>
 
-<div class="row mb-4">
-    <div class="col-md-6">
-        <div class="card bg-dark border-warning text-white p-3">
-            <h5>Average Depth</h5>
-            <h2>{{ avg_depth }}</h2>
-        </div>
+<!-- Logging Form -->
+<div class="card p-4 mb-5">
+  <h4 class="mb-3">🔥 Log Deep Work Session</h4>
+  <form method="POST">
+    {{ form.hidden_tag() }}
+    <div class="row g-3">
+      <div class="col-md-3">
+        {{ form.duration.label(class="form-label") }}
+        {{ form.duration(class="form-control") }}
+      </div>
+      <div class="col-md-3">
+        {{ form.depth.label(class="form-label") }}
+        {{ form.depth(class="form-control") }}
+      </div>
+      <div class="col-md-3">
+        {{ form.impact.label(class="form-label") }}
+        {{ form.impact(class="form-control") }}
+      </div>
+      <div class="col-md-3">
+        {{ form.category.label(class="form-label") }}
+        {{ form.category(class="form-control") }}
+      </div>
+      <div class="col-12">
+        {{ form.notes.label(class="form-label") }}
+        {{ form.notes(class="form-control", rows=3) }}
+      </div>
+      <div class="col-12 mt-3">
+        {{ form.submit(class="btn btn-warning w-100") }}
+      </div>
     </div>
-    <div class="col-md-6">
-        <div class="card bg-dark border-warning text-white p-3">
-            <h5>Average Impact</h5>
-            <h2>{{ avg_impact }}</h2>
-        </div>
-    </div>
+  </form>
 </div>
 
-<div class="card bg-secondary p-4 mb-4">
-    <h4 class="mb-3">Log Deep Work Session</h4>
-    <form method="POST">
-        {{ form.hidden_tag() }}
-        <div class="mb-2">
-            {{ form.duration.label(class="form-label") }}
-            {{ form.duration(class="form-control") }}
-        </div>
-        <div class="mb-2">
-            {{ form.depth.label(class="form-label") }}
-            {{ form.depth(class="form-control") }}
-        </div>
-        <div class="mb-2">
-            {{ form.impact.label(class="form-label") }}
-            {{ form.impact(class="form-control") }}
-        </div>
-        <div class="mb-2">
-            {{ form.category.label(class="form-label") }}
-            {{ form.category(class="form-control") }}
-        </div>
-        <div class="mb-3">
-            {{ form.notes.label(class="form-label") }}
-            {{ form.notes(class="form-control", rows=3) }}
-        </div>
-        {{ form.submit(class="btn btn-warning") }}
-    </form>
-</div>
-
-<div class="card bg-dark p-4">
-    <h4 class="mb-3">Logged Sessions</h4>
+<!-- Session History -->
+<div class="card p-4">
+  <h4 class="mb-3">📜 Logged Sessions</h4>
+  {% if sessions %}
     <ul class="list-group list-group-flush">
-        {% for s in sessions %}
-        <li class="list-group-item bg-dark text-light border-secondary mb-1">
-            <strong>{{ s.category or "Uncategorized" }}</strong><br>
-            <span>{{ s.duration }} hrs | Depth: {{ s.depth }} | Impact: {{ s.impact }}</span><br>
-            <small class="text-muted">{{ s.timestamp.strftime('%Y-%m-%d %H:%M') }}</small><br>
-            <em>{{ s.notes }}</em>
-        </li>
-        {% endfor %}
+      {% for s in sessions %}
+      <li class="list-group-item bg-dark text-light border-secondary mb-1">
+        <strong>{{ s.category or "Uncategorized" }}</strong> — {{ s.duration }} hrs  
+        | Depth: {{ s.depth }} | Impact: {{ s.impact }}  
+        <br><small class="text-muted">{{ s.timestamp.strftime('%Y-%m-%d %H:%M') }}</small>
+        <br><em>{{ s.notes }}</em>
+      </li>
+      {% endfor %}
     </ul>
+  {% else %}
+    <p class="text-muted">No sessions yet. Start logging to build your discipline streak.</p>
+  {% endif %}
 </div>
 
 {% endblock %}
