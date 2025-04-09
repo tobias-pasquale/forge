@@ -1,22 +1,76 @@
 {% extends "base.html" %}
 {% block content %}
+
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card bg-success text-white p-3">
+            <h5>Total Hours Logged</h5>
+            <h2>{{ total_hours }} hrs</h2>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card bg-info text-white p-3">
+            <h5>Top Category</h5>
+            <h2>{{ top_category }}</h2>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card bg-dark border-warning text-white p-3">
+            <h5>Average Depth</h5>
+            <h2>{{ avg_depth }}</h2>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card bg-dark border-warning text-white p-3">
+            <h5>Average Impact</h5>
+            <h2>{{ avg_impact }}</h2>
+        </div>
+    </div>
+</div>
+
+<div class="card bg-secondary p-4 mb-4">
+    <h4 class="mb-3">Log Deep Work Session</h4>
     <form method="POST">
         {{ form.hidden_tag() }}
-        {{ form.duration.label }} {{ form.duration() }}<br>
-        {{ form.depth.label }} {{ form.depth() }}<br>
-        {{ form.impact.label }} {{ form.impact() }}<br>
-        {{ form.category.label }} {{ form.category() }}<br>
-        {{ form.notes.label }} {{ form.notes() }}<br>
-        {{ form.submit() }}
+        <div class="mb-2">
+            {{ form.duration.label(class="form-label") }}
+            {{ form.duration(class="form-control") }}
+        </div>
+        <div class="mb-2">
+            {{ form.depth.label(class="form-label") }}
+            {{ form.depth(class="form-control") }}
+        </div>
+        <div class="mb-2">
+            {{ form.impact.label(class="form-label") }}
+            {{ form.impact(class="form-control") }}
+        </div>
+        <div class="mb-2">
+            {{ form.category.label(class="form-label") }}
+            {{ form.category(class="form-control") }}
+        </div>
+        <div class="mb-3">
+            {{ form.notes.label(class="form-label") }}
+            {{ form.notes(class="form-control", rows=3) }}
+        </div>
+        {{ form.submit(class="btn btn-warning") }}
     </form>
+</div>
 
-    <h2>Logged Sessions</h2>
-    <ul>
+<div class="card bg-dark p-4">
+    <h4 class="mb-3">Logged Sessions</h4>
+    <ul class="list-group list-group-flush">
         {% for s in sessions %}
-            <li>
-                <strong>{{ s.category or "No Category" }}</strong> - {{ s.duration }}h | Depth: {{ s.depth }} | Impact: {{ s.impact }}<br>
-                <em>{{ s.notes }}</em> <small>({{ s.timestamp.strftime('%Y-%m-%d %H:%M') }})</small>
-            </li>
+        <li class="list-group-item bg-dark text-light border-secondary mb-1">
+            <strong>{{ s.category or "Uncategorized" }}</strong><br>
+            <span>{{ s.duration }} hrs | Depth: {{ s.depth }} | Impact: {{ s.impact }}</span><br>
+            <small class="text-muted">{{ s.timestamp.strftime('%Y-%m-%d %H:%M') }}</small><br>
+            <em>{{ s.notes }}</em>
+        </li>
         {% endfor %}
     </ul>
+</div>
+
 {% endblock %}
