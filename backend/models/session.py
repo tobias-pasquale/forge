@@ -1,4 +1,4 @@
-from app import db
+from backend.extensions import db
 from datetime import datetime
 
 class Session(db.Model):
@@ -9,3 +9,5 @@ class Session(db.Model):
     category = db.Column(db.String(64))
     notes = db.Column(db.Text)
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
