@@ -22,13 +22,14 @@ def index():
             depth=form.depth.data,
             impact=form.impact.data,
             category=form.category.data,
-            notes=form.notes.data
+            notes=form.notes.data,
+            user_id=current_user.id  # ✅ assign the session to the logged-in user
         )
         db.session.add(session)
         db.session.commit()
         return redirect(url_for('main.index'))
 
-    sessions = Session.query.order_by(Session.timestamp.desc()).all()
+    sessions = Session.query.filter_by(user_id=current_user.id).order_by(Session.timestamp.desc()).all()
 
     # Summary stats
     total_hours = sum(s.duration for s in sessions)
