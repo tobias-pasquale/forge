@@ -1,7 +1,8 @@
 from flask import Blueprint, render_template, redirect, url_for, flash, request
 from collections import Counter
+from flask_login import login_user, logout_user, login_required, current_user
 
-from backend.forms import SessionForm, RegisterForm
+from backend.forms import SessionForm, RegisterForm, LoginForm
 from backend.models.session import Session
 from backend.models.user import User
 
@@ -10,6 +11,7 @@ main = Blueprint('main', __name__)
 print("✔️ ROUTES LOADED")
 
 @main.route('/', methods=['GET', 'POST'])
+@login_required
 def index():
     from backend import db  # 👈 lazy import to avoid circular import
 
@@ -60,3 +62,22 @@ def register():
         flash('Registration successful. Please log in.', 'success')
         return redirect(url_for('main.index'))
     return render_template('register.html', form=form)
+
+@main.route('/login', methods=['GET', 'POST'])
+def login():
+    form = LoginForm()
+    if form.validate_on_submit():
+        user = User.query.filter_by(email=form.email.data).first()
+        if user and user.check_password(form.password.data):
+            login_user(user)
+            flash("Logged in successfully!", "success")
+            return redirect(url_for('main.index'))
+        flash("Invalid email or password.", "danger")
+    return render_template('login.html', form=form)
+
+@main.route('/logout')
+@login_required
+def logout():
+    logout_user()
+    flash("Logged out.", "info")
+    return redirect(url_for('main.login'))
