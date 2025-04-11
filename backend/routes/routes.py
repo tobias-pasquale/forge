@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, redirect, url_for, flash, request
 from dotenv import load_dotenv
 from flask_login import login_user, logout_user, login_required, current_user
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 from collections import Counter
 from backend import db
 from backend.forms import SessionForm, RegisterForm, LoginForm, ToDoForm, AskGptForm
@@ -81,10 +81,19 @@ def todo():
     form = ToDoForm()
     ask_form = AskGptForm()
     if form.validate_on_submit():
-        new_task = ToDo(task=form.task.data, user_id=current_user.id)
+        task_text = form.task.data
+        due_date = form.due_date.data
+        priority = form.priority.data
+
+        new_task = ToDo(
+            task=task_text,
+            due_date=due_date,
+            priority=priority,
+            user_id=current_user.id
+        )
         db.session.add(new_task)
         db.session.commit()
-        flash("Task added!", "success")
+        flash("Task added with due date and priority.", "success")
         return redirect(url_for("main.todo"))
 
     tasks = ToDo.query.filter_by(user_id=current_user.id).order_by(ToDo.created_at.desc()).all()
@@ -94,14 +103,17 @@ def todo():
         message = f"🔥 You're on a {streak}-day streak! Keep it up!"
     elif streak == 1:
         message = "✅ You knocked out a task today—don’t break the chain!"
-
+    
+    
     return render_template(
         "todo.html",
         tasks=tasks,
         form=form,
         ask_form=ask_form,
         streak=streak,
-        message=message
+        message=message,
+        current_date=date.today().isoformat(),
+        now=date.today()
     )
 
 @main.route("/todo/complete/<int:task_id>", methods=["POST"])
@@ -119,6 +131,7 @@ def complete_task(task_id):
 @login_required
 def ask_gpt():
     from openai import OpenAI
+    from backend.models.memory import Memory
     client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
     from backend import db
     ask_form = AskGptForm()
@@ -127,21 +140,84 @@ def ask_gpt():
 
     if ask_form.validate_on_submit():
         prompt = ask_form.prompt.data
+
+        # 🧠 Fetch user's To-Do list to provide memory/context
+        user_tasks = ToDo.query.filter_by(user_id=current_user.id).order_by(ToDo.created_at.desc()).all()
+        task_list_summary = "\n".join(
+            [f"- {'[✔]' if t.completed else '[ ]'} {t.task}" for t in user_tasks]
+        )
+
+        # 🧠 Inject context into prompt
+        contextual_prompt = f"""
+    You are Forge AI, a motivational productivity assistant designed to push users toward intentional, disciplined focus and execution.
+
+    Here is the current To-Do list for the user:
+
+    {task_list_summary}
+
+    The user just asked: "{prompt}"
+
+    Respond in a brief, motivating, but stoic tone. You may suggest priorities, note patterns, or offer encouragement based on their tasks.
+    """
+
         try:
+            # 🧠 Grab last 3 interactions for context
+            past = Memory.query.filter_by(user_id=current_user.id)\
+                .order_by(Memory.created_at.desc())\
+                .limit(3).all()
+
+            memory_snippets = "\n".join([
+                f"User: {m.prompt}\nForge AI: {m.response}" for m in reversed(past)
+            ])
+
+            contextual_prompt_with_memory = f"""
+            You are Forge AI, a motivating productivity assistant. You remember what the user has asked you recently and use that context to provide helpful, insightful responses.
+
+            Recent memory:
+            {memory_snippets}
+
+            Current To-Do List:
+            {task_list_summary}
+
+            The user just asked: "{prompt}"
+
+            Reply with encouragement, task suggestions, or a brief strategy based on their context and past challenges.
+            """
+
             completion = client.chat.completions.create(
                 model="gpt-3.5-turbo",
                 messages=[
-                    {"role": "system", "content": "You are Forge AI, a motivational productivity coach."},
-                    {"role": "user", "content": prompt}
+                    {"role": "system", "content": "You are Forge AI, a productivity coach that adapts based on memory and user task data."},
+                    {"role": "user", "content": contextual_prompt_with_memory}
                 ]
             )
+
             response = completion.choices[0].message.content
         except Exception as e:
             response = f"⚠️ Error: {str(e)}"
+    
+    from backend.models.memory import Memory
+
+    new_memory = Memory(
+        user_id=current_user.id,
+        prompt=prompt,
+        response=response
+    )
+
+    db.session.add(new_memory)
+    db.session.commit()
 
     tasks = ToDo.query.filter_by(user_id=current_user.id).order_by(ToDo.created_at.desc()).all()
     streak = calculate_streak(tasks)
-    return render_template("todo.html", tasks=tasks, form=todo_form, ask_form=ask_form, response=response, streak=streak)
+
+    from backend.models.memory import Memory
+
+    memories = Memory.query.filter_by(user_id=current_user.id)\
+        .order_by(Memory.created_at.desc())\
+        .limit(10).all()
+    memories = Memory.query.filter_by(user_id=current_user.id)\
+    
+    return render_template("todo.html", tasks=tasks, form=todo_form, ask_form=ask_form, response=response, streak=streak, memories=memories, now=date.today())
 
 def calculate_streak(tasks):
     days = {t.created_at.date() for t in tasks if t.completed}

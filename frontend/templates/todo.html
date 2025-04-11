@@ -8,7 +8,7 @@
   {% with messages = get_flashed_messages(with_categories=true) %}
     {% if messages %}
       {% for category, message in messages %}
-        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+        <div class="alert border border-warning bg-dark text-warning">
           {{ message }}
           <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
@@ -18,17 +18,37 @@
 
   <!-- Motivational Streak Message -->
   {% if streak %}
-    <div class="alert alert-warning">
+    <div class="alert border border-warning bg-dark text-warning">
       🔥 <strong>{{ message }}</strong>
     </div>
   {% endif %}
 
-  <!-- Task Entry Form -->
-  <form method="POST" class="mb-4 d-flex">
-    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-    <input type="text" name="task" placeholder="Add a new task..." class="form-control me-2" required>
-    <button type="submit" class="btn btn-warning">Add Task</button>
-  </form>
+<!-- Task Entry Form -->
+<form method="POST" action="{{ url_for('main.todo') }}" class="mb-4">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+  <div class="row g-2 align-items-end">
+    <div class="col-md-6">
+      <input type="text" name="task" placeholder="Add a new task..." class="form-control" required>
+    </div>
+
+    <div class="col-md-2">
+      <input type="date" name="due_date" class="form-control" value="{{ current_date }}">
+    </div>
+
+    <div class="col-md-2">
+      <select name="priority" class="form-select">
+        <option value="None">None</option>
+        <option value="Normal" selected>Normal</option>
+        <option value="High">High</option>
+      </select>
+    </div>
+
+    <div class="col-md-2">
+      <button type="submit" class="btn btn-warning w-100">Add Task</button>
+    </div>
+  </div>
+</form>
 
   <!-- Task List -->
   <ul class="list-group mb-4">
@@ -40,9 +60,37 @@
           <form action="{{ url_for('main.complete_task', task_id=task.id) }}" method="POST" class="d-flex align-items-center m-0">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <input type="checkbox" name="completed" onchange="this.form.submit()" class="form-check-input me-2" {% if task.completed %}checked{% endif %}>
-            <span style="{% if task.completed %}text-decoration: line-through; color: #aaa;{% endif %}">
-              {{ task.task }}
-            </span>
+            <div class="d-flex flex-column">
+              <span style="{% if task.completed %}text-decoration: line-through; color: #aaa;{% endif %}">
+                {{ task.task }}
+              </span>
+            
+              <div class="small mt-1">
+                {% if task.due_date %}
+                  <span class="badge rounded-pill 
+                    {% if task.due_date.date() < now and not task.completed %} 
+                      bg-danger 
+                    {% elif task.due_date.date() == now %} 
+                      bg-warning text-dark 
+                    {% else %} 
+                      bg-secondary 
+                    {% endif %}">
+                    Due: {{ task.due_date.strftime('%b %d') }}
+                  </span>
+                {% endif %}
+            
+                {% if task.priority %}
+                  <span class="badge rounded-pill 
+                    {% if task.priority == 'High' %} bg-danger 
+                    {% elif task.priority == 'Normal' %} bg-warning text-dark 
+                    {% else %} bg-secondary 
+                    {% endif %}">
+                    Priority: {{ task.priority }}
+                  </span>
+                {% endif %}
+              </div>
+            </div>
+            
           </form>
       
           <div>
@@ -82,12 +130,29 @@
 
   <!-- GPT Response -->
   {% if response %}
-    <div class="alert alert-info mt-4">
+    <div class="alert border border-warning bg-dark text-warning mt-4">
       <strong>Forge AI:</strong><br>
       {{ response }}
     </div>
   {% endif %}
 </div>
+{% if memories %}
+<div class="card bg-dark border border-secondary mb-4">
+  <div class="card-header text-warning">Forge AI Memory</div>
+  <div class="card-body d-flex flex-column-reverse">
+    {% for mem in memories %}
+    <div class="mb-3">
+      <div class="forge-memory-user">🧠 You: {{ mem.prompt }}</div>
+      <div class="forge-memory-response">🦾 Forge AI: {{ mem.response }}</div>
+      <div class="text-end">
+        <small class="text-secondary">{{ mem.created_at.strftime('%b %d, %I:%M %p') }}</small>
+      </div>
+    </div>
+      {% if not loop.last %}<hr>{% endif %}
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
 
 <div class="modal fade" id="confirmDeleteModal" tabindex="-1" aria-labelledby="confirmDeleteLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-sm">

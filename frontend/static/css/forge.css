@@ -1,0 +1,168 @@
+:root {
+    --forge-orange: #e25822;
+    --forge-orange-light: #ff632e;
+    --forge-bg: #111;
+    --forge-muted: #aaa;
+    --forge-surface: #1a1a1a;
+    --forge-steel: #5c5f66;
+    --forge-placeholder: #c67851;
+  }
+  
+  /* Base styles */
+  body {
+    background-color: var(--forge-bg);
+    color: var(--forge-muted);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  }
+  
+  a, .btn-warning, .badge {
+    color: var(--forge-orange);
+  }
+  
+  /* Headings and core elements */
+  h1, h2, h3, h4, h5, h6 {
+    color: var(--forge-orange);
+  }
+  
+  /* Inputs and form controls */
+  input, select, textarea {
+    background-color: var(--forge-surface) !important;
+    color: var(--forge-orange) !important;
+    border: 1px solid var(--forge-orange) !important;
+    box-shadow: none !important;
+    caret-color: var(--forge-orange);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  }
+  
+  input:focus, select:focus, textarea:focus {
+    border-color: var(--forge-orange-light) !important;
+    box-shadow: 0 0 6px var(--forge-orange-light) !important;
+    outline: none !important;
+  }
+  
+  /* Autofill Fixes */
+  input:-webkit-autofill,
+  input:-moz-autofill {
+    box-shadow: 0 0 0 1000px var(--forge-surface) inset !important;
+    -webkit-text-fill-color: var(--forge-orange) !important;
+    -moz-text-fill-color: var(--forge-orange) !important;
+    caret-color: var(--forge-orange) !important;
+  }
+  
+  /* Number Input Styling */
+  input[type=number]::-webkit-inner-spin-button,
+  input[type=number]::-webkit-outer-spin-button {
+    appearance: auto !important;
+    opacity: 0.7;
+    cursor: pointer;
+  }
+  input[type=number]::-webkit-inner-spin-button:hover,
+  input[type=number]::-webkit-outer-spin-button:hover {
+    box-shadow: 0 0 5px var(--forge-orange);
+    opacity: 1;
+  }
+  input[type=number] {
+    -moz-appearance: number-input;
+  }
+  
+  /* Placeholder Text */
+  ::placeholder {
+    color: var(--forge-placeholder) !important;
+    opacity: 0.9;
+  }
+  
+  /* Alerts and Feedback */
+  .alert {
+    background-color: var(--forge-surface) !important;
+    color: var(--forge-orange) !important;
+    border: 1px solid var(--forge-orange) !important;
+    box-shadow: 0 0 6px rgba(226, 88, 34, 0.4);
+  }
+  
+  /* Badge Shadows */
+  .badge.bg-danger {
+    box-shadow: 0 0 6px rgba(255, 50, 50, 0.6);
+  }
+  .badge.bg-warning {
+    box-shadow: 0 0 6px rgba(255, 140, 0, 0.6);
+  }
+  .badge.bg-secondary {
+    box-shadow: 0 0 4px rgba(226, 88, 34, 0.3);
+  }
+  
+  /* Buttons */
+  .btn, .btn-primary, .btn-warning {
+    background-color: var(--forge-orange) !important;
+    color: black !important;
+    border: none !important;
+    font-weight: bold;
+    letter-spacing: 0.5px;
+    transition: background-color 0.2s ease, box-shadow 0.3s ease;
+  }
+  .btn:hover, .btn-primary:hover, .btn-warning:hover {
+    background-color: var(--forge-orange-light) !important;
+    box-shadow: 0 0 10px var(--forge-orange), 0 0 20px var(--forge-orange) inset;
+  }
+  
+  /* Navbar */
+  .navbar {
+    background-color: var(--forge-surface);
+    border-bottom: 2px solid var(--forge-orange);
+  }
+  .navbar-brand {
+    color: var(--forge-orange);
+    font-weight: bold;
+    letter-spacing: 2px;
+    transition: text-shadow 0.3s ease, transform 0.3s ease;
+  }
+  .navbar-brand:hover {
+    color: #fff;
+    text-shadow: 0 0 8px var(--forge-orange), 0 0 16px var(--forge-orange);
+    transform: scale(1.05);
+  }
+  a.nav-link {
+    color: #ccc;
+  }
+  a.nav-link:hover {
+    color: var(--forge-orange);
+  }
+  
+  /* Cards */
+  .card {
+    background-color: var(--forge-surface);
+    border: 1px solid #333;
+    box-shadow: 0 0 10px rgba(226, 88, 34, 0.2);
+  }
+
+  .forge-memory-response {
+    color: var(--forge-steel);  /* or use #ccc or #fff */
+  }
+  
+  .forge-memory-user {
+    color: var(--forge-orange);
+    font-weight: bold;
+  }
+  
+  /* Smoke Trail Effect */
+  .smoke-trail {
+    position: fixed;
+    width: 12px;
+    height: 12px;
+    pointer-events: none;
+    background: radial-gradient(circle, rgba(255,255,255,0.15), transparent);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 9999;
+    animation: fadeOutTrail 1s ease-out forwards;
+  }
+  @keyframes fadeOutTrail {
+    0% {
+      opacity: 1;
+      transform: scale(1) translate(-50%, -50%);
+    }
+    100% {
+      opacity: 0;
+      transform: scale(2.5) translate(-50%, -50%);
+    }
+  }
+  
