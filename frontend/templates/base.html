@@ -219,7 +219,23 @@
     mouseX = e.clientX;
     mouseY = e.clientY;
   });
+
+  function toggleEditForm(taskId) {
+    const form = document.getElementById(`edit-form-${taskId}`);
+    form.classList.toggle('d-none');
+  }
+
+  function openDeleteModal(taskId) {
+    const form = document.getElementById('deleteForm');
+    form.action = `/delete_task/${taskId}`; // This works because your route is literally /delete_task/<int:task_id>
+
+    const modal = new bootstrap.Modal(document.getElementById('confirmDeleteModal'));
+    modal.show();
+  }
+
+
 </script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
 </body>
 </html>
