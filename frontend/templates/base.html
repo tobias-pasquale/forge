@@ -108,6 +108,119 @@
   animation: fadeOutTrail 1s ease-out forwards;
 }
 
+/* Styled input fields and textareas */
+.form-control {
+  background-color: #1d1d1d;
+  border: 1px solid #444;
+  color: #e25822;
+  font-weight: 500;
+}
+
+.form-control:focus {
+  background-color: #1d1d1d;
+  border-color: #e25822;
+  box-shadow: 0 0 0 0.25rem rgba(226, 88, 34, 0.25);
+  color: #fff;
+}
+
+/* Submit and button hover tweaks */
+.btn-outline-warning {
+  border-color: #e25822;
+  color: #e25822;
+}
+
+.btn-outline-warning:hover {
+  background-color: #e25822;
+  color: #111;
+}
+
+/* Task list items */
+.list-group-item {
+  background-color: #1f1f1f;
+  border: 1px solid #333;
+  color: #f5f5f5;
+  transition: background 0.2s;
+}
+
+.list-group-item:hover {
+  background-color: #262626;
+}
+
+/* Checkbox custom styling */
+.form-check-input {
+  background-color: #222;
+  border-color: #e25822;
+  cursor: pointer;
+}
+
+.form-check-input:checked {
+  background-color: #e25822;
+  border-color: #e25822;
+}
+
+.form-check-input:focus {
+  box-shadow: 0 0 0 0.2rem rgba(226, 88, 34, 0.25);
+}
+
+/* Styled input fields and textareas */
+.form-control {
+  background-color: #1d1d1d;
+  border: 1px solid #444;
+  color: #e25822;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.form-control:focus {
+  background-color: #1d1d1d;
+  border-color: #e25822;
+  box-shadow: 0 0 8px #e25822, 0 0 16px rgba(226, 88, 34, 0.4);
+  color: #fff;
+}
+
+/* Submit and button hover tweaks */
+.btn-outline-warning {
+  border-color: #e25822;
+  color: #e25822;
+  transition: all 0.3s ease;
+}
+
+.btn-outline-warning:hover {
+  background-color: #e25822;
+  color: #111;
+}
+
+/* Task list items */
+.list-group-item {
+  background-color: #1f1f1f;
+  border: 1px solid #333;
+  color: #f5f5f5;
+  transition: all 0.3s ease;
+}
+
+.list-group-item:hover {
+  background-color: #262626;
+  border-left: 3px solid #e25822;
+  padding-left: 12px;
+}
+
+/* Checkbox custom styling */
+.form-check-input {
+  background-color: #222;
+  border-color: #e25822;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.form-check-input:checked {
+  background-color: #e25822;
+  border-color: #e25822;
+}
+
+.form-check-input:focus {
+  box-shadow: 0 0 6px #e25822, 0 0 12px rgba(226, 88, 34, 0.4);
+}
+
 @keyframes fadeOutTrail {
   0% {
     opacity: 1;

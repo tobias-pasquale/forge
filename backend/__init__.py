@@ -1,11 +1,11 @@
+from dotenv import load_dotenv
+
+load_dotenv()
 import os
 from flask import Flask
 from backend.extensions import db, csrf, login_manager
 from backend.routes import main
-from dotenv import load_dotenv
 
-
-load_dotenv()
 
 def create_app():
     # ✅ Tell Flask where to find templates
