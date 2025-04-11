@@ -151,3 +151,35 @@ def calculate_streak(tasks):
         streak += 1
         today -= timedelta(days=1)
     return streak
+
+@main.route('/edit_task/<int:task_id>', methods=['POST'])
+@login_required
+def edit_task(task_id):
+    from backend import db
+    task = ToDo.query.get_or_404(task_id)
+
+    if task.user_id != current_user.id:
+        flash("Unauthorized access", "danger")
+        return redirect(url_for('main.todo'))
+
+    new_description = request.form.get("edited_task")
+    if new_description:
+        task.task = new_description
+        db.session.commit()
+        flash("Task updated.", "success")
+    return redirect(url_for('main.todo'))
+
+@main.route('/delete_task/<int:task_id>', methods=['POST'])
+@login_required
+def delete_task(task_id):
+    from backend import db
+    task = ToDo.query.get_or_404(task_id)
+
+    if task.user_id != current_user.id:
+        flash("Unauthorized access", "danger")
+        return redirect(url_for('main.todo'))
+
+    db.session.delete(task)
+    db.session.commit()
+    flash("Task deleted.", "info")
+    return redirect(url_for('main.todo'))

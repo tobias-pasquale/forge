@@ -33,15 +33,37 @@
   <!-- Task List -->
   <ul class="list-group mb-4">
     {% for task in tasks %}
-      <li class="list-group-item d-flex justify-content-between align-items-center bg-dark text-light border-secondary">
-        <form action="{{ url_for('main.complete_task', task_id=task.id) }}" method="POST" class="d-flex align-items-center">
+    <li class="list-group-item d-flex flex-column bg-dark text-light border-secondary mb-2">
+
+        <!-- Top Row: Task + Action Buttons -->
+        <div class="d-flex justify-content-between align-items-center">
+          <form action="{{ url_for('main.complete_task', task_id=task.id) }}" method="POST" class="d-flex align-items-center m-0">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <input type="checkbox" name="completed" onchange="this.form.submit()" class="form-check-input me-2" {% if task.completed %}checked{% endif %}>
-          <span style="{% if task.completed %}text-decoration: line-through; color: #aaa;{% endif %}">
-            {{ task.task }}
-          </span>
+            <span style="{% if task.completed %}text-decoration: line-through; color: #aaa;{% endif %}">
+              {{ task.task }}
+            </span>
+          </form>
+      
+          <div>
+            <!-- Edit toggle button -->
+            <button class="btn btn-sm btn-outline-warning me-1" onclick="toggleEditForm({{ task.id }})">✏️</button>
+      
+            <!-- Delete form -->
+            <button class="btn btn-sm btn-outline-danger" onclick="openDeleteModal({{ task.id }})" type="button">🗑</button>
+
+          </div>
+        </div>
+      
+        <!-- Hidden edit form -->
+        <form action="{{ url_for('main.edit_task', task_id=task.id) }}" method="POST" class="mt-2 d-none" id="edit-form-{{ task.id }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <div class="d-flex">
+            <input type="text" name="edited_task" value="{{ task.task }}" class="form-control form-control-sm me-2">
+            <button class="btn btn-sm btn-warning" type="submit">💾 Save</button>
+          </div>
         </form>
-        <small class="text-muted">{{ task.created_at.strftime('%b %d') }}</small>
+      
       </li>
     {% else %}
       <li class="list-group-item text-center text-muted bg-dark border-secondary">No tasks yet. Add one above.</li>
@@ -66,4 +88,25 @@
     </div>
   {% endif %}
 </div>
+
+<div class="modal fade" id="confirmDeleteModal" tabindex="-1" aria-labelledby="confirmDeleteLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+      <div class="modal-content bg-dark text-light border border-danger">
+        <div class="modal-header border-0">
+          <h5 class="modal-title text-danger" id="confirmDeleteLabel">Confirm Delete</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          Are you sure you want to delete this task?
+        </div>
+        <div class="modal-footer border-0">
+          <form id="deleteForm" method="POST">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" class="btn btn-danger">Yes, delete it</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+  
 {% endblock %}
