@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <h1 class="mb-4">Your Forge Tasks</h1>
+
+  <!-- Flash Messages -->
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      {% for category, message in messages %}
+        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+          {{ message }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+
+  <!-- Motivational Streak Message -->
+  {% if streak %}
+    <div class="alert alert-warning">
+      🔥 <strong>{{ message }}</strong>
+    </div>
+  {% endif %}
+
+  <!-- Task Entry Form -->
+  <form method="POST" class="mb-4 d-flex">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <input type="text" name="task" placeholder="Add a new task..." class="form-control me-2" required>
+    <button type="submit" class="btn btn-warning">Add Task</button>
+  </form>
+
+  <!-- Task List -->
+  <ul class="list-group mb-4">
+    {% for task in tasks %}
+      <li class="list-group-item d-flex justify-content-between align-items-center bg-dark text-light border-secondary">
+        <form action="{{ url_for('main.complete_task', task_id=task.id) }}" method="POST" class="d-flex align-items-center">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <input type="checkbox" name="completed" onchange="this.form.submit()" class="form-check-input me-2" {% if task.completed %}checked{% endif %}>
+          <span style="{% if task.completed %}text-decoration: line-through; color: #aaa;{% endif %}">
+            {{ task.task }}
+          </span>
+        </form>
+        <small class="text-muted">{{ task.created_at.strftime('%b %d') }}</small>
+      </li>
+    {% else %}
+      <li class="list-group-item text-center text-muted bg-dark border-secondary">No tasks yet. Add one above.</li>
+    {% endfor %}
+  </ul>
+
+  <!-- GPT Prompt Form -->
+  <form method="POST" action="{{ url_for('main.ask_gpt') }}" class="mb-4">
+    {{ ask_form.hidden_tag() }}
+    <div class="mb-3">
+      {{ ask_form.prompt.label(class="form-label text-warning") }}
+      {{ ask_form.prompt(class="form-control", rows="2") }}
+    </div>
+    {{ ask_form.submit(class="btn btn-outline-warning") }}
+  </form>
+
+  <!-- GPT Response -->
+  {% if response %}
+    <div class="alert alert-info mt-4">
+      <strong>Forge AI:</strong><br>
+      {{ response }}
+    </div>
+  {% endif %}
+
+{% endblock %}
