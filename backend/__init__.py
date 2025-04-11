@@ -6,7 +6,6 @@ from flask import Flask
 from backend.extensions import db, csrf, login_manager
 from backend.routes import main
 
-
 def create_app():
     # ✅ Tell Flask where to find templates
     base_dir = os.path.abspath(os.path.dirname(__file__))

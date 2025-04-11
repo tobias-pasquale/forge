@@ -18,6 +18,8 @@ print("✔️ ROUTES LOADED")
 @main.route("/", methods=["GET", "POST"])
 @login_required
 def index():
+
+    from backend import db  # 👈 lazy import to avoid circular import
     form = SessionForm()
     if form.validate_on_submit():
         session = Session(
@@ -44,6 +46,7 @@ def index():
 
 @main.route("/register", methods=["GET", "POST"])
 def register():
+    from backend import db  # 👈 same here
     form = RegisterForm()
     if form.validate_on_submit():
         user = User(username=form.username.data, email=form.email.data)
@@ -137,3 +140,4 @@ def calculate_streak(tasks):
         streak += 1
         today -= timedelta(days=1)
     return streak
+
