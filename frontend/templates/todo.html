@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 
 {% block content %}
+<div class="container mt-4">
   <h1 class="mb-4">Your Forge Tasks</h1>
 
   <!-- Flash Messages -->
@@ -54,7 +55,7 @@
       {{ ask_form.prompt.label(class="form-label text-warning") }}
       {{ ask_form.prompt(class="form-control", rows="2") }}
     </div>
-    {{ ask_form.submit(class="btn btn-outline-warning") }}
+    {{ ask_form.submit(class="btn btn-warning") }}
   </form>
 
   <!-- GPT Response -->
@@ -64,5 +65,5 @@
       {{ response }}
     </div>
   {% endif %}
-
+</div>
 {% endblock %}
