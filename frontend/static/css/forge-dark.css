@@ -7,12 +7,26 @@
     --forge-steel: #5c5f66;
     --forge-placeholder: #c67851;
   }
+
+  html, body, .card, .navbar, input, textarea, select, button {
+    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+  }
+
+  main {
+    opacity: 1;
+    transition: opacity 0.2s ease-in-out;
+  }
+  body.theme-transitioning main {
+    opacity: 0;
+  }
+  
   
   /* Base styles */
   body {
     background-color: var(--forge-bg);
     color: var(--forge-muted);
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    transition: background-color 0.3s ease, color 0.3s ease;
   }
   
   a, .btn-warning, .badge {
@@ -20,7 +34,7 @@
   }
   
   /* Headings and core elements */
-  h1, h2, h3, h4, h5, h6 {
+  h1, h2, h3, h4, h5, h6, p, span, label {
     color: var(--forge-orange);
   }
   

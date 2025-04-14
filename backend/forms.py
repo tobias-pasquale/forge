@@ -1,6 +1,7 @@
 from flask_wtf import FlaskForm
 from wtforms import StringField, TextAreaField, IntegerField, FloatField, SubmitField, PasswordField, SelectField, DateField
 from wtforms.validators import DataRequired, NumberRange, Email, EqualTo
+from datetime import date
 
 class SessionForm(FlaskForm):
     duration = FloatField('Duration (hrs)', validators=[DataRequired()])
@@ -27,8 +28,8 @@ class LoginForm(FlaskForm):
 
 class ToDoForm(FlaskForm):
     task = StringField("Task", validators=[DataRequired()])
-    due_date = DateField("Due Date", format='%Y-%m-%d', validators=[], render_kw={"placeholder": "YYYY-MM-DD"})
-    priority = SelectField("Priority", choices=[("Low", "Low"), ("Normal", "Normal"), ("High", "High")])
+    due_date = DateField("Due Date", default=date.today)
+    priority = SelectField("Priority", choices=[("None", "None"), ("Normal", "Normal"), ("High", "High")], default="Normal")
     submit = SubmitField("Add Task")
 
 class AskGptForm(FlaskForm):

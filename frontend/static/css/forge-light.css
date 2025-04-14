@@ -1,0 +1,83 @@
+:root {
+  --primary: #2c3e50;
+  --accent: #e25822;
+  --muted: #666;
+  --bg: #f7f9fc;
+  --surface: #ffffff;
+  --border: #dcdcdc;
+  --highlight: #fafafa;
+}
+
+html, body, .card, .navbar, input, textarea, select, button {
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
+
+main {
+  opacity: 1;
+  transition: opacity 0.2s ease-in-out;
+}
+body.theme-transitioning main {
+  opacity: 0;
+}
+
+body {
+  background-color: var(--bg);
+  color: var(--primary);
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.navbar {
+  background-color: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+
+.navbar-brand {
+  color: var(--accent);
+  font-weight: bold;
+}
+
+a.nav-link {
+  color: var(--primary);
+}
+
+a.nav-link:hover {
+  color: var(--accent);
+}
+
+.card {
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: 0 1px 5px rgba(0,0,0,0.05);
+}
+
+input, select, textarea {
+  background-color: var(--highlight);
+  color: var(--primary);
+  border: 1px solid var(--border);
+}
+
+input:focus, select:focus, textarea:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 5px var(--accent);
+}
+
+.btn {
+  background-color: var(--accent);
+  color: #fff;
+  border: none;
+}
+
+.btn:hover {
+  background-color: #ff632e;
+}
+
+.alert {
+  background-color: #fff4ef;
+  color: var(--primary);
+  border-left: 4px solid var(--accent);
+}
+
+::placeholder {
+  color: var(--muted);
+}

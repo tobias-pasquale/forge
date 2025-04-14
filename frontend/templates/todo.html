@@ -69,11 +69,11 @@
                 {% if task.due_date %}
                   <span class="badge rounded-pill 
                     {% if task.due_date.date() < now and not task.completed %} 
-                      bg-danger 
+                      bg-danger text-dark
                     {% elif task.due_date.date() == now %} 
                       bg-warning text-dark 
                     {% else %} 
-                      bg-secondary 
+                      bg-secondary text-dark
                     {% endif %}">
                     Due: {{ task.due_date.strftime('%b %d') }}
                   </span>
@@ -81,9 +81,9 @@
             
                 {% if task.priority %}
                   <span class="badge rounded-pill 
-                    {% if task.priority == 'High' %} bg-danger 
+                    {% if task.priority == 'High' %} bg-danger text-dark
                     {% elif task.priority == 'Normal' %} bg-warning text-dark 
-                    {% else %} bg-secondary 
+                    {% else %} bg-secondary text-dark
                     {% endif %}">
                     Priority: {{ task.priority }}
                   </span>
