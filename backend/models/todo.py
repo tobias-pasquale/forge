@@ -10,6 +10,7 @@ class ToDo(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     due_date = db.Column(db.DateTime, nullable=True)
     priority = db.Column(db.String(20), default='Normal')
+    recurring = db.Column(db.String(20), default='None')  # 'None', 'Daily', 'Weekly'
 
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     user = db.relationship("User", backref="todos")

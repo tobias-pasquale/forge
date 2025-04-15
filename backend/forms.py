@@ -30,6 +30,11 @@ class ToDoForm(FlaskForm):
     task = StringField("Task", validators=[DataRequired()])
     due_date = DateField("Due Date", default=date.today)
     priority = SelectField("Priority", choices=[("None", "None"), ("Normal", "Normal"), ("High", "High")], default="Normal")
+    recurring = SelectField('Recurring', choices=[
+        ('None', 'None'),
+        ('Daily', 'Daily'),
+        ('Weekly', 'Weekly')
+    ], default='None')
     submit = SubmitField("Add Task")
 
 class AskGptForm(FlaskForm):

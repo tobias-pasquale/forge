@@ -89,11 +89,12 @@ def todo():
             task=task_text,
             due_date=due_date,
             priority=priority,
+            recurring=form.recurring.data,
             user_id=current_user.id
         )
         db.session.add(new_task)
         db.session.commit()
-        flash("Task added with due date and priority.", "success")
+        flash("Task added.", "success")
         return redirect(url_for("main.todo"))
 
     tasks = ToDo.query.filter_by(user_id=current_user.id).order_by(ToDo.created_at.desc()).all()

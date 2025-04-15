@@ -23,11 +23,34 @@
   {% endif %}
 
   <!-- Task Entry Form -->
-  <form method="POST" class="mb-4 d-flex">
-    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-    <input type="text" name="task" placeholder="Add a new task..." class="form-control me-2" required>
-    <button type="submit" class="btn btn-warning">Add Task</button>
+  <form method="POST" class="mb-4 row g-2 align-items-end">
+    {{ form.hidden_tag() }}
+  
+    <div class="col-md-5">
+      {{ form.task.label(class="form-label") }}
+      {{ form.task(class="form-control", placeholder="Add a new task...") }}
+    </div>
+  
+    <div class="col-md-2">
+      {{ form.due_date.label(class="form-label") }}
+      {{ form.due_date(class="form-control") }}
+    </div>
+  
+    <div class="col-md-2">
+      {{ form.priority.label(class="form-label") }}
+      {{ form.priority(class="form-select") }}
+    </div>
+  
+    <div class="col-md-2">
+      {{ form.recurring.label(class="form-label") }}
+      {{ form.recurring(class="form-select") }}
+    </div>
+  
+    <div class="col-md-1">
+      {{ form.submit(class="btn btn-warning w-100") }}
+    </div>
   </form>
+  
 
   {# Split active and completed tasks #}
   {% set active_tasks = tasks | selectattr("completed", "equalto", False) | list %}
