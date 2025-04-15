@@ -1,14 +1,13 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="container mt-4">
   <h1 class="mb-4">Your Forge Tasks</h1>
 
   <!-- Flash Messages -->
   {% with messages = get_flashed_messages(with_categories=true) %}
     {% if messages %}
       {% for category, message in messages %}
-        <div class="alert border border-warning bg-dark text-warning">
+        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
           {{ message }}
           <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
@@ -18,160 +17,118 @@
 
   <!-- Motivational Streak Message -->
   {% if streak %}
-    <div class="alert border border-warning bg-dark text-warning">
+    <div class="alert alert-warning">
       🔥 <strong>{{ message }}</strong>
     </div>
   {% endif %}
 
-<!-- Task Entry Form -->
-<form method="POST" action="{{ url_for('main.todo') }}" class="mb-4">
-  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <!-- Task Entry Form -->
+  <form method="POST" class="mb-4 d-flex">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <input type="text" name="task" placeholder="Add a new task..." class="form-control me-2" required>
+    <button type="submit" class="btn btn-warning">Add Task</button>
+  </form>
 
-  <div class="row g-2 align-items-end">
-    <div class="col-md-6">
-      <input type="text" name="task" placeholder="Add a new task..." class="form-control" required>
-    </div>
+  {# Split active and completed tasks #}
+  {% set active_tasks = tasks | selectattr("completed", "equalto", False) | list %}
+  {% set completed_tasks = tasks | selectattr("completed", "equalto", True) | list %}
 
-    <div class="col-md-2">
-      <input type="date" name="due_date" class="form-control" value="{{ current_date }}">
-    </div>
-
-    <div class="col-md-2">
-      <select name="priority" class="form-select">
-        <option value="None">None</option>
-        <option value="Normal" selected>Normal</option>
-        <option value="High">High</option>
-      </select>
-    </div>
-
-    <div class="col-md-2">
-      <button type="submit" class="btn btn-warning w-100">Add Task</button>
-    </div>
-  </div>
-</form>
-
-  <!-- Task List -->
+  <!-- Active Tasks -->
+  <h5 class="mb-3 text-warning">Active Tasks</h5>
   <ul class="list-group mb-4">
-    {% for task in tasks %}
-    <li class="list-group-item d-flex flex-column bg-dark text-light border-secondary mb-2">
-
-        <!-- Top Row: Task + Action Buttons -->
-        <div class="d-flex justify-content-between align-items-center">
-          <form action="{{ url_for('main.complete_task', task_id=task.id) }}" method="POST" class="d-flex align-items-center m-0">
-            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-            <input type="checkbox" name="completed" onchange="this.form.submit()" class="form-check-input me-2" {% if task.completed %}checked{% endif %}>
-            <div class="d-flex flex-column">
-              <span style="{% if task.completed %}text-decoration: line-through; color: #aaa;{% endif %}">
-                {{ task.task }}
-              </span>
-            
-              <div class="small mt-1">
-                {% if task.due_date %}
-                  <span class="badge rounded-pill 
-                    {% if task.due_date.date() < now and not task.completed %} 
-                      bg-danger text-dark
-                    {% elif task.due_date.date() == now %} 
-                      bg-warning text-dark 
-                    {% else %} 
-                      bg-secondary text-dark
-                    {% endif %}">
-                    Due: {{ task.due_date.strftime('%b %d') }}
-                  </span>
-                {% endif %}
-            
-                {% if task.priority %}
-                  <span class="badge rounded-pill 
-                    {% if task.priority == 'High' %} bg-danger text-dark
-                    {% elif task.priority == 'Normal' %} bg-warning text-dark 
-                    {% else %} bg-secondary text-dark
-                    {% endif %}">
-                    Priority: {{ task.priority }}
-                  </span>
-                {% endif %}
-              </div>
-            </div>
-            
-          </form>
-      
-          <div>
-            <!-- Edit toggle button -->
-            <button class="btn btn-sm btn-outline-warning me-1" onclick="toggleEditForm({{ task.id }})">✏️</button>
-      
-            <!-- Delete form -->
-            <button class="btn btn-sm btn-outline-danger" onclick="openDeleteModal({{ task.id }})" type="button">🗑</button>
-
-          </div>
-        </div>
-      
-        <!-- Hidden edit form -->
-        <form action="{{ url_for('main.edit_task', task_id=task.id) }}" method="POST" class="mt-2 d-none" id="edit-form-{{ task.id }}">
+    {% for task in active_tasks %}
+      <li class="list-group-item d-flex justify-content-between align-items-center border-secondary">
+        <form action="{{ url_for('main.complete_task', task_id=task.id) }}" method="POST" class="d-flex align-items-center">
           <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-          <div class="d-flex">
-            <input type="text" name="edited_task" value="{{ task.task }}" class="form-control form-control-sm me-2">
-            <button class="btn btn-sm btn-warning" type="submit">💾 Save</button>
-          </div>
+          <input type="checkbox" name="completed" onchange="this.form.submit()" class="form-check-input me-2" {% if task.completed %}checked{% endif %}>
+          <span style="{% if task.completed %}text-decoration: line-through; color: #aaa;{% endif %}">
+            {{ task.task }}
+          </span>
         </form>
-      
+        <div class="d-flex align-items-center">
+          <button class="btn btn-sm btn-outline-secondary me-1" onclick="toggleEditForm({{ task.id }})">
+            <i class="bi bi-pencil"></i>
+          </button>
+          <button class="btn btn-sm btn-outline-danger" onclick="openDeleteModal({{ task.id }})" type="button">
+            <i class="bi bi-trash"></i>
+          </button>
+        </div>
       </li>
     {% else %}
-      <li class="list-group-item text-center text-muted bg-dark border-secondary">No tasks yet. Add one above.</li>
+      <li class="list-group-item text-center text-muted border-secondary">No active tasks. Go do something dangerous and fulfilling.</li>
     {% endfor %}
   </ul>
 
-  <!-- GPT Prompt Form -->
+  <!-- Collapse Button for Completed Tasks -->
+  <button class="btn btn-sm btn-outline-secondary mb-3" type="button" data-bs-toggle="collapse" data-bs-target="#completedTasks" aria-expanded="false" aria-controls="completedTasks">
+    Show Completed Tasks ({{ completed_tasks | length }})
+  </button>
+
+  <!-- Completed Tasks Section -->
+  <div class="collapse" id="completedTasks">
+    <h5 class="mt-3 mb-2 text-muted">Completed Tasks</h5>
+    <ul class="list-group mb-4">
+      {% for task in completed_tasks %}
+        <li class="list-group-item d-flex justify-content-between align-items-center text-muted border-secondary">
+          <form action="{{ url_for('main.complete_task', task_id=task.id) }}" method="POST" class="d-flex align-items-center">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <input type="checkbox" name="completed" onchange="this.form.submit()" class="form-check-input me-2" checked>
+            <span style="text-decoration: line-through; color: #666;">
+              {{ task.task }}
+            </span>
+          </form>
+          <div class="d-flex align-items-center">
+            <button class="btn btn-sm btn-outline-secondary me-1" onclick="toggleEditForm({{ task.id }})">
+              <i class="bi bi-pencil"></i>
+            </button>
+            <button class="btn btn-sm btn-outline-danger" onclick="openDeleteModal({{ task.id }})" type="button">
+              <i class="bi bi-trash"></i>
+            </button>
+          </div>
+        </li>
+      {% else %}
+        <li class="list-group-item text-center text-muted border-secondary">
+          Nothing completed. Start somewhere.
+        </li>
+      {% endfor %}
+    </ul>
+  </div>
+
+  <!-- Ask Forge AI -->
   <form method="POST" action="{{ url_for('main.ask_gpt') }}" class="mb-4">
-    {{ ask_form.hidden_tag() }}
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <div class="mb-3">
-      {{ ask_form.prompt.label(class="form-label text-warning") }}
-      {{ ask_form.prompt(class="form-control", rows="2") }}
+      <label for="prompt" class="form-label text-warning">Ask Forge AI</label>
+      <textarea name="prompt" rows="2" class="form-control" placeholder="Ask Forge AI"></textarea>
     </div>
-    {{ ask_form.submit(class="btn btn-warning") }}
+    <button type="submit" class="btn btn-outline-warning">Ask Forge</button>
   </form>
 
   <!-- GPT Response -->
   {% if response %}
-    <div class="alert border border-warning bg-dark text-warning mt-4">
+    <div class="alert alert-info mt-4 forge-memory-response">
       <strong>Forge AI:</strong><br>
       {{ response }}
     </div>
   {% endif %}
-</div>
-{% if memories %}
-<div class="card bg-dark border border-secondary mb-4">
-  <div class="card-header text-warning">Forge AI Memory</div>
-  <div class="card-body d-flex flex-column-reverse">
-    {% for mem in memories %}
-    <div class="mb-3">
-      <div class="forge-memory-user">🧠 You: {{ mem.prompt }}</div>
-      <div class="forge-memory-response">🦾 Forge AI: {{ mem.response }}</div>
-      <div class="text-end">
-        <small class="text-secondary">{{ mem.created_at.strftime('%b %d, %I:%M %p') }}</small>
-      </div>
-    </div>
-      {% if not loop.last %}<hr>{% endif %}
-    {% endfor %}
-  </div>
-</div>
-{% endif %}
 
-<div class="modal fade" id="confirmDeleteModal" tabindex="-1" aria-labelledby="confirmDeleteLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-sm">
-      <div class="modal-content bg-dark text-light border border-danger">
-        <div class="modal-header border-0">
-          <h5 class="modal-title text-danger" id="confirmDeleteLabel">Confirm Delete</h5>
-          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+  <!-- Optional Memory Log -->
+  {% if memories %}
+  <div class="card border border-secondary mb-5">
+    <div class="card-header text-warning">Forge AI Memory</div>
+    <div class="card-body">
+      {% for mem in memories %}
+        <div class="mb-3">
+          <div><strong class="forge-memory-user">🧠 You:</strong> {{ mem.prompt }}</div>
+          <div class="text-muted"><strong>🦾 Forge AI:</strong> {{ mem.response }}</div>
+          <div class="text-end">
+            <small class="text-secondary">{{ mem.created_at.strftime('%b %d, %I:%M %p') }}</small>
+          </div>
         </div>
-        <div class="modal-body">
-          Are you sure you want to delete this task?
-        </div>
-        <div class="modal-footer border-0">
-          <form id="deleteForm" method="POST">
-            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-            <button type="submit" class="btn btn-danger">Yes, delete it</button>
-          </form>
-        </div>
-      </div>
+        {% if not loop.last %}<hr>{% endif %}
+      {% endfor %}
     </div>
   </div>
-  
+  {% endif %}
+
 {% endblock %}

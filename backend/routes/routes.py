@@ -132,8 +132,10 @@ def complete_task(task_id):
 def ask_gpt():
     from openai import OpenAI
     from backend.models.memory import Memory
-    client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
     from backend import db
+
+    client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+
     ask_form = AskGptForm()
     todo_form = ToDoForm()
     response = None
@@ -149,22 +151,22 @@ def ask_gpt():
 
         # 🧠 Inject context into prompt
         contextual_prompt = f"""
-    You are Forge AI, a motivational productivity assistant designed to push users toward intentional, disciplined focus and execution.
+        You are Forge AI, a motivational productivity assistant designed to push users toward intentional, disciplined focus and execution.
 
-    Here is the current To-Do list for the user:
+        Here is the current To-Do list for the user:
 
-    {task_list_summary}
+        {task_list_summary}
 
-    The user just asked: "{prompt}"
+        The user just asked: "{prompt}"
 
-    Respond in a brief, motivating, but stoic tone. You may suggest priorities, note patterns, or offer encouragement based on their tasks.
-    """
+        Respond in a stoic tone. You may suggest priorities, note patterns, or offer encouragement based on their tasks.
+        """
 
         try:
-            # 🧠 Grab last 3 interactions for context
+            # 🧠 Grab last 7 interactions for context
             past = Memory.query.filter_by(user_id=current_user.id)\
                 .order_by(Memory.created_at.desc())\
-                .limit(3).all()
+                .limit(7).all()
 
             memory_snippets = "\n".join([
                 f"User: {m.prompt}\nForge AI: {m.response}" for m in reversed(past)
@@ -180,10 +182,9 @@ def ask_gpt():
             {task_list_summary}
 
             The user just asked: "{prompt}"
-
-            Reply with encouragement, task suggestions, or a brief strategy based on their context and past challenges.
             """
 
+            # 🧠 Call OpenAI with full context
             completion = client.chat.completions.create(
                 model="gpt-3.5-turbo",
                 messages=[
@@ -193,31 +194,38 @@ def ask_gpt():
             )
 
             response = completion.choices[0].message.content
+
         except Exception as e:
             response = f"⚠️ Error: {str(e)}"
-    
-    from backend.models.memory import Memory
 
-    new_memory = Memory(
-        user_id=current_user.id,
-        prompt=prompt,
-        response=response
-    )
+        # 🧠 Log the prompt/response to memory regardless of success or fail
+        new_memory = Memory(
+            user_id=current_user.id,
+            prompt=prompt,
+            response=response
+        )
 
-    db.session.add(new_memory)
-    db.session.commit()
+        db.session.add(new_memory)
+        db.session.commit()
 
+    # 🧠 Rebuild template context
     tasks = ToDo.query.filter_by(user_id=current_user.id).order_by(ToDo.created_at.desc()).all()
     streak = calculate_streak(tasks)
-
-    from backend.models.memory import Memory
-
     memories = Memory.query.filter_by(user_id=current_user.id)\
         .order_by(Memory.created_at.desc())\
-        .limit(10).all()
-    memories = Memory.query.filter_by(user_id=current_user.id)\
-    
-    return render_template("todo.html", tasks=tasks, form=todo_form, ask_form=ask_form, response=response, streak=streak, memories=memories, now=date.today())
+        .limit(20).all()
+
+    return render_template(
+        "todo.html",
+        tasks=tasks,
+        form=todo_form,
+        ask_form=ask_form,
+        response=response,
+        streak=streak,
+        memories=memories,
+        now=date.today()
+    )
+
 
 def calculate_streak(tasks):
     days = {t.created_at.date() for t in tasks if t.completed}
@@ -227,6 +235,7 @@ def calculate_streak(tasks):
         streak += 1
         today -= timedelta(days=1)
     return streak
+
 
 @main.route('/edit_task/<int:task_id>', methods=['POST'])
 @login_required
