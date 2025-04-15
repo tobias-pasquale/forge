@@ -66,6 +66,23 @@
           <input type="checkbox" name="completed" onchange="this.form.submit()" class="form-check-input me-2" {% if task.completed %}checked{% endif %}>
           <span style="{% if task.completed %}text-decoration: line-through; color: #aaa;{% endif %}">
             {{ task.task }}
+            {% if task.due_date %}
+              <span class="badge bg-dark border text-light ms-2">
+                Due Date: {{ task.due_date.strftime('%b %d') }}
+              </span>
+            {% endif %}
+
+            {% if task.priority and task.priority != 'None' %}
+              <span class="badge bg-warning text-dark ms-1">
+                Priority: {{ task.priority }}
+              </span>
+            {% endif %}
+
+            {% if task.recurring and task.recurring != 'None' %}
+              <span class="badge bg-secondary text-light ms-1">
+                Recurrence: {{ task.recurring }}
+              </span>
+            {% endif %}
           </span>
         </form>
         <div class="d-flex align-items-center">
@@ -98,6 +115,23 @@
             <input type="checkbox" name="completed" onchange="this.form.submit()" class="form-check-input me-2" checked>
             <span style="text-decoration: line-through; color: #666;">
               {{ task.task }}
+              {% if task.due_date %}
+                <span class="badge bg-dark border text-light ms-2">
+                  Due Date: {{ task.due_date.strftime('%b %d') }}
+                </span>
+              {% endif %}
+
+              {% if task.priority and task.priority != 'None' %}
+                <span class="badge bg-warning text-dark ms-1">
+                  Priority: {{ task.priority }}
+                </span>
+              {% endif %}
+
+              {% if task.recurring and task.recurring != 'None' %}
+                <span class="badge bg-secondary text-light ms-1">
+                  Recurrence: {{ task.recurring }}
+                </span>
+              {% endif %}
             </span>
           </form>
           <div class="d-flex align-items-center">
