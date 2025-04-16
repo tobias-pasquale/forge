@@ -146,9 +146,15 @@ def ask_gpt():
 
         # 🧠 Fetch user's To-Do list to provide memory/context
         user_tasks = ToDo.query.filter_by(user_id=current_user.id).order_by(ToDo.created_at.desc()).all()
-        task_list_summary = "\n".join(
-            [f"- {'[✔]' if t.completed else '[ ]'} {t.task}" for t in user_tasks]
-        )
+        task_list_summary = "\n".join([
+            f"- {'[✔]' if t.completed else '[ ]'} {t.task} | Due: {t.due_date.strftime('%b %d') if t.due_date else 'N/A'} | Priority: {t.priority or 'Normal'} | Recurring: {t.recurring or 'None'}"
+            for t in user_tasks
+        ])
+        sessions = Session.query.filter_by(user_id=current_user.id).order_by(Session.timestamp.desc()).limit(10).all()
+        deep_summary = "\n".join([
+            f"- {s.timestamp.strftime('%b %d')} | {s.duration} mins | Depth: {s.depth} | Impact: {s.impact} | Cat: {s.category or 'N/A'}"
+            for s in sessions
+        ])
 
         # 🧠 Inject context into prompt
         contextual_prompt = f"""
@@ -157,6 +163,10 @@ def ask_gpt():
         Here is the current To-Do list for the user:
 
         {task_list_summary}
+
+        Here is the current Deep Work Logs for the user:
+        
+        {deep_summary}
 
         The user just asked: "{prompt}"
 
@@ -248,11 +258,23 @@ def edit_task(task_id):
         flash("Unauthorized access", "danger")
         return redirect(url_for('main.todo'))
 
-    new_description = request.form.get("edited_task")
-    if new_description:
-        task.task = new_description
-        db.session.commit()
-        flash("Task updated.", "success")
+    task_desc = request.form.get("edited_task")
+    due_date = request.form.get("edited_due_date")
+    priority = request.form.get("edited_priority")
+    recurring = request.form.get("edited_recurring")
+
+    if task_desc:
+        task.task = task_desc
+
+    if due_date:
+        from datetime import datetime
+        task.due_date = datetime.strptime(due_date, '%Y-%m-%d').date()
+
+    task.priority = priority
+    task.recurring = recurring
+
+    db.session.commit()
+    flash("Task updated.", "success")
     return redirect(url_for('main.todo'))
 
 @main.route('/delete_task/<int:task_id>', methods=['POST'])

@@ -83,6 +83,20 @@
     form.classList.toggle('d-none');
   }
 
+  function openEditModal(taskId, taskText, dueDate, priority, recurring) {
+  const form = document.getElementById('editModalForm');
+  form.action = `/edit_task/${taskId}`;
+  document.getElementById('modalTaskInput').value = taskText;
+  document.getElementById('modalDueDate').value = dueDate || '';
+  document.getElementById('modalPriority').value = priority || 'None';
+  document.getElementById('modalRecurring').value = recurring || 'None';
+
+  const modal = new bootstrap.Modal(document.getElementById('editModal'));
+  modal.show();
+}
+
+
+
 // Delete Confirmation Modal
 
   function openDeleteModal(taskId) {

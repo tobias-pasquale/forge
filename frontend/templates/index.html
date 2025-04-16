@@ -68,7 +68,7 @@
   {% if sessions %}
     <ul class="list-group list-group-flush">
       {% for s in sessions %}
-      <li class="list-group-item bg-dark text-light border-secondary mb-1">
+      <li class="list-group-item border-secondary mb-1">
         <strong>{{ s.category or "Uncategorized" }}</strong> — {{ s.duration }} hrs  
         | Depth: {{ s.depth }} | Impact: {{ s.impact }}  
         <br><small class="text-muted">{{ s.timestamp.strftime('%Y-%m-%d %H:%M') }}</small>
