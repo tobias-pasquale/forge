@@ -34,6 +34,8 @@
     </div>
   </div>
 </nav>
+<div id="hammer-strike">🔨</div>
+<audio id="strike-sound" src="{{ url_for('static', filename='audio/hammer.mp3') }}"></audio>
 
 <main class="container py-5">
   {% block content %}{% endblock %}
@@ -133,6 +135,35 @@
 setTimeout(() => {
   document.body.classList.remove("theme-transitioning");
 }, 200);
+  });
+
+
+  function playHammerStrike() {
+    const hammer = document.getElementById('hammer-strike');
+    const sound = document.getElementById('strike-sound');
+
+    hammer.style.display = 'block';
+    hammer.classList.remove('animate');
+    void hammer.offsetWidth; // Force reflow
+    hammer.classList.add('animate');
+
+    sound.currentTime = 0;
+    sound.play();
+
+    setTimeout(() => {
+      hammer.style.display = 'none';
+    }, 600);
+  }
+
+  // Intercept task completion checkboxes
+  document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('input[type="checkbox"][name="completed"]').forEach(checkbox => {
+      checkbox.addEventListener('change', () => {
+        if (checkbox.checked) {
+          playHammerStrike();
+        }
+      });
+    });
   });
 
 
