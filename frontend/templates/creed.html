@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container text-center mt-5">
+  <h1 class="text-warning mb-4">🛡️ Forge Creed</h1>
+
+  <blockquote class="blockquote mb-0">
+    <p>I act from purpose, not for permission.<br>
+    I seek truth, not applause.<br>
+    Outcomes are data, not definitions.<br>
+    <br>
+    Victory humbles me. <br>
+    Failure instructs me. <br>
+    Neither owns me.<br>
+    <br>
+    I do not beg reality to favor me.<br>
+    I build until reality yields.<br>
+    <br>
+    I welcome pressure.<br>
+    I refine through friction.<br>
+    I sharpen through solitude.<br>
+    <br>
+    I am not owed success.<br>
+    I earn alignment between what I build and what I become.<br>
+    <br>
+    Each task is a brick.<br>
+    Each decision is a hammer strike.<br>
+    I forge myself, daily, without guarantee, without mercy, without end.</p>
+  </blockquote>
+
+  <div class="mt-4">
+    <a href="{{ url_for('main.todo') }}" class="btn btn-outline-warning">Return to Forge</a>
+  </div>
+</div>
+{% endblock %}

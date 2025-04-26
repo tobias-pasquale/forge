@@ -62,6 +62,17 @@ input:focus, select:focus, textarea:focus {
   box-shadow: 0 0 5px var(--accent);
 }
 
+ /* Badge Shadows */
+ .badge.bg-danger {
+  box-shadow: 0 0 6px rgba(255, 50, 50, 0.6);
+}
+.badge.bg-warning {
+  box-shadow: 0 0 6px rgba(255, 140, 0, 0.6);
+}
+.badge.bg-secondary {
+  box-shadow: 0 0 4px rgba(226, 88, 34, 0.3);
+}
+
 .btn {
   background-color: var(--accent);
   color: #fff;

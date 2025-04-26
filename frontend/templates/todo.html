@@ -2,6 +2,7 @@
 
 {% block content %}
   <h1 class="mb-4">Your Forge Tasks</h1>
+  
 
   <!-- Flash Messages -->
   {% with messages = get_flashed_messages(with_categories=true) %}
@@ -73,10 +74,17 @@
             {% endif %}
 
             {% if task.priority and task.priority != 'None' %}
-              <span class="badge bg-warning text-dark ms-1">
+              <span class="badge 
+                {% if task.priority == 'High' %}
+                  bg-danger
+                {% else %}
+                  bg-warning text-dark
+                {% endif %}
+                ms-1">
                 Priority: {{ task.priority }}
               </span>
             {% endif %}
+
 
             {% if task.recurring and task.recurring != 'None' %}
               <span class="badge bg-secondary text-light ms-1">
@@ -135,6 +143,9 @@
   <button class="btn btn-sm btn-outline-secondary mb-3" type="button" data-bs-toggle="collapse" data-bs-target="#completedTasks" aria-expanded="false" aria-controls="completedTasks">
     Show Completed Tasks ({{ completed_tasks | length }})
   </button>
+
+  
+  
 
   <!-- Completed Tasks Section -->
   <div class="collapse" id="completedTasks">

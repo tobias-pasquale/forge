@@ -15,25 +15,36 @@
 
 <body>
 
-<nav class="navbar navbar-expand-lg shadow-sm">
-  <div class="container">
-    <a class="navbar-brand" href="/">FORGE</a>
-    <div class="collapse navbar-collapse">
-      <ul class="navbar-nav ms-auto">
-        <li class="nav-item">
-          <a class="nav-link" href="/">Deep Work</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" href="{{ url_for('main.todo') }}">Tasks</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" href="{{ url_for('main.logout') }}">Logout</a>
-        </li>
-      </ul>
-      <button id="theme-toggle" class="btn btn-sm btn-outline-warning ms-3">Dark Mode</button>
+  <nav class="navbar navbar-expand-lg shadow-sm navbar-light bg-light" id="forge-navbar">
+    <div class="container">
+      <a class="navbar-brand" href="/">FORGE</a>
+  
+      <!-- Toggle button for mobile nav -->
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#forgeNavbar" aria-controls="forgeNavbar" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+  
+      <!-- Collapsible nav links -->
+      <div class="collapse navbar-collapse" id="forgeNavbar">
+        <ul class="navbar-nav ms-auto">
+          <li class="nav-item">
+            <a class="nav-link" href="/">Deep Work</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="{{ url_for('main.todo') }}">Tasks</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="{{ url_for('main.creed') }}">Forge Creed</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="{{ url_for('main.logout') }}">Logout</a>
+          </li>
+        </ul>
+        <button id="theme-toggle" class="btn btn-sm btn-outline-warning ms-3">Dark Mode</button>
+      </div>
     </div>
-  </div>
-</nav>
+  </nav>
+  
 <div id="hammer-strike">🔨</div>
 <audio id="strike-sound" src="{{ url_for('static', filename='audio/hammer.mp3') }}"></audio>
 
@@ -113,6 +124,7 @@
 
   const toggleBtn = document.getElementById('theme-toggle');
   const themeLink = document.getElementById('theme-style');
+  const navbar = document.getElementById('forge-navbar');
 
   // Define exact paths
   const darkTheme = "{{ url_for('static', filename='css/forge-dark.css') }}";
@@ -122,21 +134,47 @@
   const storedTheme = localStorage.getItem('theme');
   if (storedTheme) {
     themeLink.href = storedTheme;
+    updateNavbarTheme(storedTheme);
   }
+
+  if (storedTheme) {
+  themeLink.href = storedTheme;
+  updateNavbarTheme(storedTheme);
+  
+  if (storedTheme.includes('dark')) {
+    toggleBtn.textContent = "Light Mode";
+  } else {
+    toggleBtn.textContent = "Dark Mode";
+  }
+}
 
   // Toggle + save
   toggleBtn.addEventListener('click', () => {
-    const isDark = themeLink.href.includes('forge-dark.css');
-    const nextTheme = isDark ? lightTheme : darkTheme;
-    themeLink.href = nextTheme;
-    localStorage.setItem('theme', nextTheme);
+  const isDark = themeLink.href.includes('forge-dark.css');
+  const nextTheme = isDark ? lightTheme : darkTheme;
+  
+  themeLink.href = nextTheme;
+  localStorage.setItem('theme', nextTheme);
+  updateNavbarTheme(nextTheme); // fixed
 
-    document.body.classList.add("theme-transitioning");
-setTimeout(() => {
-  document.body.classList.remove("theme-transitioning");
-}, 200);
-  });
+  // 🆕 Update button text
+  toggleBtn.textContent = isDark ? "Dark Mode" : "Light Mode";
 
+  document.body.classList.add("theme-transitioning");
+  setTimeout(() => {
+    document.body.classList.remove("theme-transitioning");
+  }, 200);
+});
+
+  function updateNavbarTheme(theme) {
+  if (theme.includes('dark')) {
+    navbar.classList.remove('navbar-light', 'bg-light');
+    navbar.classList.add('navbar-dark', 'bg-dark');
+  } else {
+    navbar.classList.remove('navbar-dark', 'bg-dark');
+    navbar.classList.add('navbar-light', 'bg-light');
+  }
+}
 
   function playHammerStrike() {
     const hammer = document.getElementById('hammer-strike');

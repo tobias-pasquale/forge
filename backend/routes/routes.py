@@ -291,3 +291,9 @@ def delete_task(task_id):
     db.session.commit()
     flash("Task deleted.", "info")
     return redirect(url_for('main.todo'))
+
+@main.route("/creed")
+@login_required
+def creed():
+    return render_template("creed.html")
+
