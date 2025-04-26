@@ -3,45 +3,93 @@
 {% block content %}
 <section class="text-center py-5 hero-fade">
     <h1 class="display-3 fw-bold text-warning mb-3 forgemaster-glow">Forge Your Mind.</h1>
-  <p class="lead mb-5">
-    Warriors aren’t born. They're built.<br>
-    Shape your future with discipline, resilience, and relentless mastery.
-  </p>
+    <p class="lead mb-5">
+      Warriors aren’t born. They're built.<br>
+      Shape your future with discipline, resilience, and relentless mastery.
+    </p>
 
-  <a href="{{ url_for('main.todo') }}" class="btn btn-lg btn-warning fw-bold px-5 py-3 shadow-sm mb-5">
-    Enter the Forge
-  </a>
+    <a href="{{ url_for('main.todo') }}" class="btn btn-lg btn-warning fw-bold px-5 py-3 shadow-sm mb-5">
+      Enter the Forge
+    </a>
 
-  <div class="row mt-5">
-    <div class="col-md-4 mb-4">
-      <i class="bi bi-hammer fs-1 text-warning"></i>
-      <h4 class="mt-3">Daily Discipline</h4>
-      <p class="small">Plan. Execute. Strengthen your mind with deliberate, focused action.</p>
+    <div class="row mt-5">
+      <div class="col-md-4 mb-4">
+        <i class="bi bi-hammer fs-1 text-warning"></i>
+        <h4 class="mt-3">Daily Discipline</h4>
+        <p class="small">Plan. Execute. Strengthen your mind with deliberate, focused action.</p>
+      </div>
+      <div class="col-md-4 mb-4">
+        <i class="bi bi-shield-shaded fs-1 text-warning"></i>
+        <h4 class="mt-3">Armor Your Will</h4>
+        <p class="small">Earn weapons and armor by completing goals, forging yourself for greater battles ahead.</p>
+      </div>
+      <div class="col-md-4 mb-4">
+        <i class="bi bi-trophy fs-1 text-warning"></i>
+        <h4 class="mt-3">Outperform the Masses</h4>
+        <p class="small">Crush mediocrity with measurable progress, daily victories, and AI-assisted strategy.</p>
+      </div>
     </div>
-    <div class="col-md-4 mb-4">
-      <i class="bi bi-shield-shaded fs-1 text-warning"></i>
-      <h4 class="mt-3">Armor Your Will</h4>
-      <p class="small">Earn weapons and armor by completing goals, forging yourself for greater battles ahead.</p>
-    </div>
-    <div class="col-md-4 mb-4">
-      <i class="bi bi-trophy fs-1 text-warning"></i>
-      <h4 class="mt-3">Outperform the Masses</h4>
-      <p class="small">Crush mediocrity with measurable progress, daily victories, and AI-assisted strategy.</p>
-    </div>
-  </div>
 </section>
 
+<style>
+.spark {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  background: radial-gradient(circle, #ffa500 0%, #ff4500 70%, transparent 100%);
+  border-radius: 50%;
+  pointer-events: none;
+  animation: riseSpark 2s linear forwards;
+  z-index: 9999;
+}
+
+@keyframes riseSpark {
+  0% {
+    transform: translate(0, 0) scale(1);
+    opacity: 1;
+  }
+  70% {
+    opacity: 0.8;
+  }
+  100% {
+    transform: translate(var(--x-move, 0px), -300px) scale(0.3);
+    opacity: 0;
+  }
+}
+</style>
+
 <script>
-  window.addEventListener('load', () => {
-  for (let i = 0; i < 6; i++) {
+window.addEventListener('load', () => {
+  const heroSection = document.querySelector('.hero-fade');
+
+  function createSpark() {
     const spark = document.createElement('div');
     spark.classList.add('spark');
-    spark.style.left = `${50 + Math.random() * 20 - 10}%`;
-    spark.style.top = `${60 + Math.random() * 10}px`;
+    spark.style.left = `${window.innerWidth / 2 + (Math.random() * 100 - 50)}px`;
+    spark.style.top = `${heroSection.offsetTop + 50}px`;
+    spark.style.setProperty('--x-move', `${Math.random() * 100 - 50}px`);
+
     document.body.appendChild(spark);
-    setTimeout(() => spark.remove(), 1500);
+    setTimeout(() => spark.remove(), 2000);
   }
+
+  function randomBurst() {
+    const count = Math.floor(Math.random() * 4) + 3; // 3 to 6 sparks per burst
+    for (let i = 0; i < count; i++) {
+      setTimeout(createSpark, Math.random() * 500);
+    }
+  }
+
+  randomBurst();
+
+  // Optional: continue small random bursts for a few seconds
+  let bursts = 0;
+  const burstInterval = setInterval(() => {
+    randomBurst();
+    bursts++;
+    if (bursts > 5) clearInterval(burstInterval);
+  }, 1000);
 });
 </script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
 {% endblock %}
