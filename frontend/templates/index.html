@@ -71,7 +71,7 @@
       <li class="list-group-item border-secondary mb-1">
         <strong>{{ s.category or "Uncategorized" }}</strong> — {{ s.duration }} hrs  
         | Depth: {{ s.depth }} | Impact: {{ s.impact }}  
-        <br><small class="text-muted">{{ s.timestamp.strftime('%Y-%m-%d %H:%M') }}</small>
+        <br><small>{{ s.timestamp.strftime('%Y-%m-%d %H:%M') }}</small>
         <br><em>{{ s.notes }}</em>
       </li>
       {% endfor %}

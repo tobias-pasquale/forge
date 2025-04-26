@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="text-center py-5 hero-fade">
+  <h1 class="display-3 fw-bold text-warning mb-3">Forge Your Mind.</h1>
+  <p class="lead mb-5">
+    Warriors aren’t born. They're built.<br>
+    Shape your future with discipline, resilience, and relentless mastery.
+  </p>
+
+  <a href="{{ url_for('main.todo') }}" class="btn btn-lg btn-warning fw-bold px-5 py-3 shadow-sm mb-5">
+    Enter the Forge
+  </a>
+
+  <div class="row mt-5">
+    <div class="col-md-4 mb-4">
+      <i class="bi bi-hammer fs-1 text-warning"></i>
+      <h4 class="mt-3">Daily Discipline</h4>
+      <p class="small text-muted">Plan. Execute. Strengthen your mind with deliberate, focused action.</p>
+    </div>
+    <div class="col-md-4 mb-4">
+      <i class="bi bi-shield-shaded fs-1 text-warning"></i>
+      <h4 class="mt-3">Armor Your Will</h4>
+      <p class="small text-muted">Earn weapons and armor by completing goals, forging yourself for greater battles ahead.</p>
+    </div>
+    <div class="col-md-4 mb-4">
+      <i class="bi bi-trophy fs-1 text-warning"></i>
+      <h4 class="mt-3">Outperform the Masses</h4>
+      <p class="small text-muted">Crush mediocrity with measurable progress, daily victories, and AI-assisted strategy.</p>
+    </div>
+  </div>
+</section>
+{% endblock %}

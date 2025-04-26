@@ -17,7 +17,11 @@ main = Blueprint('main', __name__)
 
 print("✔️ ROUTES LOADED")
 
-@main.route("/", methods=["GET", "POST"])
+@main.route("/")
+def home():
+    return render_template("home.html")
+
+@main.route("/focus", methods=["GET", "POST"])
 @login_required
 def index():
     form = SessionForm()

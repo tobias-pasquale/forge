@@ -45,7 +45,14 @@ a.nav-link:hover {
   color: var(--accent);
 }
 
-.card {
+.list-group-item .list-group {
+  background-color: var(--surface);
+  color: var(--primary);
+  border: 1px solid var(--border);
+  box-shadow: 0 0 6px rgba(0, 0, 0, 0.1);
+}
+
+.card{
   background-color: var(--surface);
   border: 1px solid var(--border);
   box-shadow: 0 1px 5px rgba(0,0,0,0.05);
@@ -111,4 +118,19 @@ input:focus, select:focus, textarea:focus {
   pointer-events: none;
   animation: hammerStrike 0.6s ease-out forwards;
 }
+
+.hero-fade {
+  opacity: 0;
+  transform: translateY(20px);
+  animation: fadeInUp 1s ease-out forwards;
+  animation-delay: 0.3s;
+}
+
+@keyframes fadeInUp {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 
