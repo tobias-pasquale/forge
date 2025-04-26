@@ -100,24 +100,53 @@ input:focus, select:focus, textarea:focus {
   color: var(--muted);
 }
 
-@keyframes hammerStrike {
-  0% { transform: rotate(-30deg) translateY(-20px); opacity: 0; }
-  50% { transform: rotate(0deg) translateY(0); opacity: 1; }
-  100% { transform: rotate(0deg) translateY(20px); opacity: 0; }
-}
-
 #hammer-strike {
   position: fixed;
   top: 40%;
   left: 50%;
   transform: translate(-50%, -50%);
-  font-size: 5rem;
+  font-size: 6rem;
   color: var(--forge-orange);
   z-index: 9999;
   display: none;
   pointer-events: none;
-  animation: hammerStrike 0.6s ease-out forwards;
 }
+
+#hammer-strike i {
+  font-size: 18rem; /* 3x bigger */
+  text-shadow: 
+    0 0 25px var(--forge-orange-light),
+    0 0 45px var(--forge-orange),
+    0 0 80px var(--forge-orange);
+    color: var(--forge-orange) !important;
+}
+
+#glow-trail {
+  position: absolute;
+  width: 50px;
+  height: 50px;
+  background: radial-gradient(circle, rgba(255, 100, 0, 0.7) 0%, transparent 70%);
+  opacity: 0.7;
+  border-radius: 50%;
+  pointer-events: none;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  animation: trailPulse 0.6s ease-out forwards;
+}
+
+@keyframes trailPulse {
+  0% {
+    opacity: 1;
+    transform: scale(0.5) translate(-50%, -50%);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(2) translate(-50%, -50%);
+  }
+}
+
+
 
 .hero-fade {
   opacity: 0;
@@ -134,3 +163,94 @@ input:focus, select:focus, textarea:focus {
 }
 
 
+@keyframes forgeGlow {
+  0% { text-shadow: 0 0 5px var(--forge-orange), 0 0 10px var(--forge-orange-light); }
+  50% { text-shadow: 0 0 20px var(--forge-orange-light), 0 0 40px var(--forge-orange); }
+  100% { text-shadow: 0 0 5px var(--forge-orange), 0 0 10px var(--forge-orange-light); }
+}
+
+#forge-dim-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: black;
+  opacity: 0;
+  z-index: 9998; /* just under hammer */
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+.forge-spark {
+  position: fixed;
+  width: 4px;
+  height: 4px;
+  background: radial-gradient(circle, orange, transparent);
+  border-radius: 50%;
+  z-index: 9999;
+  animation: forgeSparkFly 1s ease-out forwards;
+  pointer-events: none;
+}
+
+@keyframes forgeSparkFly {
+  0% {
+    opacity: 1;
+    transform: translate(0, 0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(
+      calc(30px - 60px * random()),
+      calc(30px - 60px * random())
+    ) scale(0.5);
+  }
+}
+
+
+#impact-wave {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  background: radial-gradient(circle, rgba(255, 140, 0, 0.4) 0%, transparent 70%);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  opacity: 0;
+  z-index: 9998;
+  transition: opacity 0.3s ease;
+}
+
+@keyframes shockwave {
+  0% {
+    width: 0;
+    height: 0;
+    opacity: 0.6;
+  }
+  50% {
+    width: 200px;
+    height: 200px;
+    opacity: 0.4;
+  }
+  100% {
+    width: 500px;
+    height: 500px;
+    opacity: 0;
+  }
+}
+
+
+@keyframes forgeShake {
+  0% { transform: translate(0, 0); }
+  20% { transform: translate(-5px, 5px); }
+  40% { transform: translate(5px, -5px); }
+  60% { transform: translate(-5px, -5px); }
+  80% { transform: translate(5px, 5px); }
+  100% { transform: translate(0, 0); }
+}
+
+body.forge-shake {
+  animation: forgeShake 0.4s ease;
+}

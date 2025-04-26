@@ -15,6 +15,8 @@
 
 <body>
 
+<div id="forge-dim-overlay"></div>
+<div id="impact-wave"></div>
   <nav class="navbar navbar-expand-lg shadow-sm navbar-light bg-light" id="forge-navbar">
     <div class="container">
       <a class="navbar-brand" href="/">FORGE</a>
@@ -45,7 +47,11 @@
     </div>
   </nav>
   
-<div id="hammer-strike">🔨</div>
+  <div id="hammer-strike">
+    <i class="bi bi-hammer"></i> <!-- Bootstrap hammer -->
+    <div id="glow-trail"></div>
+  </div>
+  
 <audio id="strike-sound" src="{{ url_for('static', filename='audio/hammer.mp3') }}"></audio>
 
 <main class="container py-5">
@@ -176,22 +182,61 @@
   }
 }
 
-  function playHammerStrike() {
-    const hammer = document.getElementById('hammer-strike');
-    const sound = document.getElementById('strike-sound');
+function playHammerStrike() {
+  const hammer = document.getElementById('hammer-strike');
+  const hammerIcon = hammer.querySelector('i');
+  const glowTrail = document.getElementById('glow-trail');
+  const sound = document.getElementById('strike-sound');
+  const wave = document.getElementById('impact-wave');
+  const dimOverlay = document.getElementById('forge-dim-overlay');
 
-    hammer.style.display = 'block';
-    hammer.classList.remove('animate');
-    void hammer.offsetWidth; // Force reflow
-    hammer.classList.add('animate');
+  // Dim the screen
+  dimOverlay.style.opacity = '0.7';
 
-    sound.currentTime = 0;
-    sound.play();
+  // Reset + show hammer
+  hammer.style.display = 'block';
+  hammer.classList.remove('animate');
+  void hammer.offsetWidth; // Force reflow
+  hammer.classList.add('animate');
 
-    setTimeout(() => {
-      hammer.style.display = 'none';
-    }, 600);
-  }
+  for (let i = 0; i < 8; i++) {
+  const spark = document.createElement('div');
+  spark.className = 'forge-spark';
+  document.body.appendChild(spark);
+
+  spark.style.left = `${50 + (Math.random() - 0.5) * 10}%`;
+  spark.style.top = `${40 + (Math.random() - 0.5) * 5}%`;
+  spark.style.animationDuration = `${0.6 + Math.random() * 0.5}s`;
+
+  setTimeout(() => {
+    spark.remove();
+  }, 1500);
+}
+
+  // Reset glow trail
+  glowTrail.style.animation = 'none';
+  void glowTrail.offsetWidth;
+  glowTrail.style.animation = 'trailPulse 0.6s ease-out forwards';
+
+  // New: Trigger the shockwave
+  wave.style.animation = 'shockwave 0.8s ease-out forwards';
+
+    // New: Shockwave and screen shake
+    wave.style.animation = 'shockwave 0.8s ease-out forwards';
+  document.body.classList.add('forge-shake');
+
+  sound.currentTime = 0;
+  sound.play();
+
+  setTimeout(() => {
+    hammer.style.display = 'none';
+    dimOverlay.style.opacity = '0';
+    wave.style.animation = ''; // Reset for next strike
+    document.body.classList.remove('forge-shake');
+  }, 600);
+}
+
+
 
   // Intercept task completion checkboxes
   document.addEventListener('DOMContentLoaded', () => {

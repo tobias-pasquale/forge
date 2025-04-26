@@ -288,7 +288,7 @@
       {% for mem in memories %}
         <div class="mb-3">
           <div><strong class="forge-memory-user">🧠 You:</strong> {{ mem.prompt }}</div>
-          <div class="text-muted"><strong>🦾 Forge AI:</strong> {{ mem.response }}</div>
+          <div><strong>🦾 Forge AI:</strong> {{ mem.response }}</div>
           <div class="text-end">
             <small class="text-secondary">{{ mem.created_at.strftime('%b %d, %I:%M %p') }}</small>
           </div>
