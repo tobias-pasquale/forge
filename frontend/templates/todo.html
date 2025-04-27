@@ -60,14 +60,16 @@
 
   <!-- Active Tasks -->
   <h5 class="mb-3 text-warning">Active Tasks</h5>
-  <ul class="list-group mb-4">
+  <ul id="activeTasksList" class="list-group mb-4">
     {% for task in active_tasks %}
-      <li class="list-group-item d-flex justify-content-between align-items-center border-secondary">
+      <li id="task-{{ task.id }}" class="list-group-item d-flex justify-content-between align-items-center border-secondary">
         <form action="{{ url_for('main.complete_task', task_id=task.id) }}" method="POST" class="d-flex align-items-center">
           <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-          <input type="checkbox" name="completed" class="form-check-input me-2"
-            {% if task.completed %}checked{% endif %}
-            onchange="toggleTaskCompletion({{ task.id }}, this.checked)">
+          <input type="checkbox" 
+                name="completed" 
+                onchange="toggleTaskComplete({{ task.id }})" 
+                class="form-check-input me-2"
+            {% if task.completed %}checked{% endif %}>
           <span style="{% if task.completed %}text-decoration: line-through; color: #aaa;{% endif %}">
             {{ task.task }}
             {% if task.due_date %}
@@ -153,11 +155,9 @@
   <!-- Completed Tasks Section -->
   <div class="collapse" id="completedTasks">
     <h5 class="mt-3 mb-2 text-muted">Completed Tasks</h5>
-    <ul class="list-group mb-4">
+    <ul id="completedTasksList" class="list-group mb-4">
       {% for task in completed_tasks %}
-        <li class="list-group-item d-flex justify-content-between align-items-center text-muted border-secondary">
-          <form action="{{ url_for('main.complete_task', task_id=task.id) }}" method="POST" class="d-flex align-items-center">
-            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <li id="task-{{ task.id }}" class="list-group-item d-flex justify-content-between align-items-center text-muted border-secondary">
             <input type="checkbox" name="completed" onchange="this.form.submit()" class="form-check-input me-2" checked>
             <span style="text-decoration: line-through; color: #666;">
               {{ task.task }}
@@ -179,7 +179,6 @@
                 </span>
               {% endif %}
             </span>
-          </form>
           <div class="d-flex align-items-center">
             <button class="btn btn-sm btn-outline-secondary me-1"
               onclick="openEditModal({{ task.id }}, '{{ task.task }}', '{{ task.due_date.strftime('%Y-%m-%d') if task.due_date else '' }}', '{{ task.priority }}', '{{ task.recurring }}')">

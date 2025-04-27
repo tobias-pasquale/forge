@@ -14,6 +14,7 @@
 </head>
 
 <body>
+<input type="hidden" id="global-csrf-token" name="csrf_token" value="{{ csrf_token() }}">
 
 <div id="forge-dim-overlay"></div>
 <div id="impact-wave"></div>
@@ -154,29 +155,51 @@
   }
 }
 
-function toggleTaskCompletion(taskId, completed) {
+function toggleTaskComplete(taskId) {
+  const checkbox = document.querySelector(`#task-${taskId} input[type="checkbox"]`);
+  const isCompleted = checkbox.checked;
+
   fetch(`/toggle_task/${taskId}`, {
     method: 'POST',
     headers: {
-      'Content-Type': 'application/json',
-      'X-CSRFToken': document.querySelector('input[name=csrf_token]').value
+      'Content-Type': 'application/json',    // ✅ Say you are sending JSON
+      'X-CSRFToken': document.querySelector('input[name="csrf_token"]').value  // ✅ Protect against CSRF
     },
-    body: JSON.stringify({ completed: completed })
+    body: JSON.stringify({ completed: isCompleted })   // ✅ Actually send JSON
   })
   .then(response => {
     if (!response.ok) {
-      throw new Error('Failed to toggle task');
+      throw new Error('Failed to complete task');
     }
-    return response.json();
+    return response.json();  // 🔥 parse the JSON response
   })
   .then(data => {
-    console.log('Task toggled:', data);
-    if (completed) {
-      playHammerStrike(); // still use your awesome animation
-    }
+    moveTaskBetweenLists(taskId, data.completed);
+    playHammerStrike();
   })
   .catch(error => console.error('Error:', error));
 }
+
+
+
+function moveTaskBetweenLists(taskId, completed) {
+  const taskItem = document.getElementById(`task-${taskId}`);
+  if (!taskItem) return;
+
+  const completedSection = document.getElementById('completedTasksList');
+  const activeSection = document.getElementById('activeTasksList');
+
+  if (completed) {
+    completedSection.appendChild(taskItem);
+    taskItem.querySelector('span').style.textDecoration = 'line-through';
+  } else {
+    activeSection.appendChild(taskItem);
+    taskItem.querySelector('span').style.textDecoration = 'none';
+  }
+}
+
+
+
 
   // Toggle + save
   toggleBtn.addEventListener('click', () => {
