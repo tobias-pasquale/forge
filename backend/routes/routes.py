@@ -305,3 +305,16 @@ def delete_task(task_id):
 def creed():
     return render_template("creed.html")
 
+@main.route('/toggle_task/<int:task_id>', methods=['POST'])
+@login_required
+def toggle_task(task_id):
+    from backend import db
+    task = ToDo.query.get_or_404(task_id)
+
+    if task.user_id != current_user.id:
+        return {'error': 'Unauthorized'}, 403
+
+    data = request.get_json()
+    task.completed = data.get('completed', False)
+    db.session.commit()
+    return {'status': 'success', 'completed': task.completed}

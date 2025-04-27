@@ -154,6 +154,30 @@
   }
 }
 
+function toggleTaskCompletion(taskId, completed) {
+  fetch(`/toggle_task/${taskId}`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRFToken': document.querySelector('input[name=csrf_token]').value
+    },
+    body: JSON.stringify({ completed: completed })
+  })
+  .then(response => {
+    if (!response.ok) {
+      throw new Error('Failed to toggle task');
+    }
+    return response.json();
+  })
+  .then(data => {
+    console.log('Task toggled:', data);
+    if (completed) {
+      playHammerStrike(); // still use your awesome animation
+    }
+  })
+  .catch(error => console.error('Error:', error));
+}
+
   // Toggle + save
   toggleBtn.addEventListener('click', () => {
   const isDark = themeLink.href.includes('forge-dark.css');
