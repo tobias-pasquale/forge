@@ -2,94 +2,193 @@
 
 {% block content %}
 <section class="text-center py-5 hero-fade">
-    <h1 class="display-3 fw-bold text-warning mb-3 forgemaster-glow">Forge Your Mind.</h1>
-    <p class="lead mb-5">
-      Warriors aren’t born. They're built.<br>
-      Shape your future with discipline, resilience, and relentless mastery.
-    </p>
+  <h1 id="forgeTitle" class="display-3 fw-bold mb-3 forge-glow position-relative">
+    Welcome, Warrior.
+    <div id="forgeSparks"></div> <!-- Sparks now *inside* the heading! -->
+  </h1>
+  
 
-    <a href="{{ url_for('main.todo') }}" class="btn btn-lg btn-warning fw-bold px-5 py-3 shadow-sm mb-5">
-      Enter the Forge
-    </a>
+  
+  
+  <p class="lead mb-5 ">
+    You bring the raw ore of your effort.<br>
+    The Forge will shape it. The Blacksmith will guide it.<br>
+    Your future will be weaponized through mastery.
+  </p>
 
-    <div class="row mt-5">
-      <div class="col-md-4 mb-4">
-        <i class="bi bi-hammer fs-1 text-warning"></i>
-        <h4 class="mt-3">Daily Discipline</h4>
-        <p class="small">Plan. Execute. Strengthen your mind with deliberate, focused action.</p>
-      </div>
-      <div class="col-md-4 mb-4">
-        <i class="bi bi-shield-shaded fs-1 text-warning"></i>
-        <h4 class="mt-3">Armor Your Will</h4>
-        <p class="small">Earn weapons and armor by completing goals, forging yourself for greater battles ahead.</p>
-      </div>
-      <div class="col-md-4 mb-4">
-        <i class="bi bi-trophy fs-1 text-warning"></i>
-        <h4 class="mt-3">Outperform the Masses</h4>
-        <p class="small">Crush mediocrity with measurable progress, daily victories, and AI-assisted strategy.</p>
-      </div>
+  <a href="{{ url_for('main.todo') }}" class="btn btn-lg btn-warning fw-bold px-5 py-3 shadow mb-4">
+    Step into the Forge
+  </a>
+
+  <div class="row mt-5">
+    <div class="col-md-4 mb-4">
+      <i class="bi bi-hammer fs-1 text-warning"></i>
+      <h4 class="mt-3 ">Forge Your Arsenal</h4>
+      <p class="small ">
+        Every task you complete crafts your next weapon — deliberate, deadly, unstoppable.
+      </p>
     </div>
+
+    <div class="col-md-4 mb-4">
+      <i class="bi bi-shield-shaded fs-1 text-warning"></i>
+      <h4 class="mt-3 ">Armor Your Mind</h4>
+      <p class="small ">
+        Build resilience and strategic dominance. The Forge AI shapes raw intent into indestructible will.
+      </p>
+    </div>
+
+    <div class="col-md-4 mb-4">
+      <i class="bi bi-trophy fs-1 text-warning"></i>
+      <h4 class="mt-3 ">Conquer New Frontiers</h4>
+      <p class="small ">
+        Surpass mediocrity. Smash plateaus. Rise as a living legend through relentless mastery.
+      </p>
+    </div>
+  </div>
 </section>
 
 <style>
-.spark {
+  /* Forge Core Sparks */
+  .forge-spark {
   position: absolute;
-  width: 4px;
-  height: 4px;
-  background: radial-gradient(circle, #ffa500 0%, #ff4500 70%, transparent 100%);
+  width: 5px;
+  height: 5px;
+  background: radial-gradient(circle, var(--forge-spark-color), transparent);
   border-radius: 50%;
-  pointer-events: none;
-  animation: riseSpark 2s linear forwards;
-  z-index: 9999;
+  opacity: 0.9;
+  animation: forgeSparkRise 3s linear forwards;
 }
 
-@keyframes riseSpark {
+@keyframes forgeSparkRise {
   0% {
-    transform: translate(0, 0) scale(1);
+    transform: translate(0, 0) scale(1) rotate(0deg);
     opacity: 1;
   }
-  70% {
-    opacity: 0.8;
+  30% {
+    transform: translate(-5px, -10px) scale(0.9) rotate(15deg);
+    opacity: 0.9;
+  }
+  60% {
+    transform: translate(5px, -20px) scale(0.7) rotate(-15deg);
+    opacity: 0.7;
   }
   100% {
-    transform: translate(var(--x-move, 0px), -300px) scale(0.3);
+    transform: translate(0px, -40px) scale(0.5) rotate(0deg);
     opacity: 0;
   }
 }
-</style>
 
-<script>
-window.addEventListener('load', () => {
-  const heroSection = document.querySelector('.hero-fade');
 
-  function createSpark() {
+  
+  /* Main Title Glow */
+  .forge-glow {
+    color: var(--forge-orange);
+    text-shadow: 0 0 15px var(--forge-orange);
+  }
+  
+  /* ForgeSparks container styling */
+  #forgeTitle {
+  position: relative;
+  overflow: visible;
+}
+
+#forgeSparks {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 2;
+}
+
+  @keyframes forgeStrikeBurst {
+  0% {
+    text-shadow: 0 0 10px var(--forge-orange), 0 0 20px var(--forge-orange);
+    transform: scale(1);
+  }
+  20% {
+    text-shadow: 0 0 40px var(--forge-orange), 0 0 80px var(--forge-orange);
+    transform: scale(1.08);
+  }
+  50% {
+    text-shadow: 0 0 20px var(--forge-orange), 0 0 40px var(--forge-orange);
+    transform: scale(1.02);
+  }
+  100% {
+    text-shadow: 0 0 10px var(--forge-orange), 0 0 20px var(--forge-orange);
+    transform: scale(1);
+  }
+}
+
+.forge-strike {
+  animation: forgeStrikeBurst 2s ease-out;
+}
+
+  </style>
+  
+  
+
+  <script>
+    window.addEventListener('DOMContentLoaded', () => {
+      const sparkContainer = document.getElementById('forgeSparks');
+    
+      function createSpark() {
+        const spark = document.createElement('div');
+        spark.className = 'forge-spark';
+    
+        // Randomly position the spark INSIDE the forgeTitle bounds
+        spark.style.left = `${30 + Math.random() * 40}%`;
+        spark.style.top = `${Math.random() * 100}%`;
+    
+        sparkContainer.appendChild(spark);
+    
+        setTimeout(() => {
+          spark.remove();
+        }, 2500); // slightly shorter lifetime for tightness
+      }
+    
+      setInterval(createSpark, 80); // ~8–9 sparks per second
+    
+      // Strike Burst Animation
+      function triggerForgeStrike() {
+  forgeTitle.classList.add('forge-strike');
+
+  // 🌟 Forge Strike Burst 🌟
+  const strikeX = 30 + Math.random() * 40; // Random between 30%–70%
+  const strikeY = 20 + Math.random() * 40; // Random height above/below title
+
+  for (let i = 0; i < 30; i++) {
     const spark = document.createElement('div');
-    spark.classList.add('spark');
-    spark.style.left = `${window.innerWidth / 2 + (Math.random() * 100 - 50)}px`;
-    spark.style.top = `${heroSection.offsetTop + 50}px`;
-    spark.style.setProperty('--x-move', `${Math.random() * 100 - 50}px`);
+    spark.className = 'forge-spark';
+    spark.style.left = `${strikeX + (Math.random() * 10 - 5)}%`; // ±5% scatter
+    spark.style.top = `${strikeY + (Math.random() * 20 - 10)}%`; // ±10% vertical scatter
+    spark.style.background = `radial-gradient(circle, var(--forge-spark-color), transparent)`;
+    sparkContainer.appendChild(spark);
 
-    document.body.appendChild(spark);
-    setTimeout(() => spark.remove(), 2000);
+    setTimeout(() => {
+      spark.remove();
+    }, 2000);
   }
 
-  function randomBurst() {
-    const count = Math.floor(Math.random() * 4) + 3; // 3 to 6 sparks per burst
-    for (let i = 0; i < count; i++) {
-      setTimeout(createSpark, Math.random() * 500);
-    }
-  }
-
-  randomBurst();
-
-  // Optional: continue small random bursts for a few seconds
-  let bursts = 0;
-  const burstInterval = setInterval(() => {
-    randomBurst();
-    bursts++;
-    if (bursts > 5) clearInterval(burstInterval);
+  setTimeout(() => {
+    forgeTitle.classList.remove('forge-strike');
   }, 1000);
-});
-</script>
+}
 
+    
+      function randomForgeStrike() {
+        const delay = 20000 + Math.random() * 10000;
+        setTimeout(() => {
+          triggerForgeStrike();
+          randomForgeStrike();
+        }, delay);
+      }
+    
+      randomForgeStrike();
+    });
+    </script>
+    
+    
+    
 {% endblock %}

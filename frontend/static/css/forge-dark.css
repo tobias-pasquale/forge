@@ -6,6 +6,7 @@
     --forge-surface: #1a1a1a;
     --forge-steel: #5c5f66;
     --forge-placeholder: #c67851;
+    --forge-spark-color: #e25822;
   }
 
   html, body, .card, .navbar, input, textarea, select, button {
@@ -260,16 +261,17 @@
   }
   
   /* Optional subtle sparks effect */
-  .spark {
-    position: fixed;
-    width: 4px;
-    height: 4px;
-    background: radial-gradient(circle, #ffaa33, transparent);
+  .forge-spark {
+    position: absolute;
+    width: 5px;
+    height: 5px;
+    background: radial-gradient(circle, var(--forge-spark-color), transparent);
     border-radius: 50%;
-    animation: sparkFade 1.5s ease-out forwards;
+    opacity: 0.9;
+    animation: forgeSparkRise 2.5s linear forwards;
     pointer-events: none;
-    z-index: 9999;
   }
+  
   
   @keyframes sparkFade {
     0% { opacity: 1; transform: translateY(0); }

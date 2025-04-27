@@ -10,6 +10,7 @@
   --light-forge-steel: #757982;
   --forge-orange: #e25822;
   --forge-orange-light: #ff632e;
+  --forge-spark-color: #e25822;
 }
 
 html, body, .card, .navbar, input, textarea, select, button {
@@ -208,15 +209,16 @@ input:focus, select:focus, textarea:focus {
 }
 
 .forge-spark {
-  position: fixed;
-  width: 4px;
-  height: 4px;
-  background: radial-gradient(circle, orange, transparent);
+  position: absolute;
+  width: 5px;
+  height: 5px;
+  background: radial-gradient(circle, var(--forge-spark-color), transparent);
   border-radius: 50%;
-  z-index: 9999;
-  animation: forgeSparkFly 1s ease-out forwards;
+  opacity: 0.9;
+  animation: forgeSparkRise 2.5s linear forwards;
   pointer-events: none;
 }
+
 
 @keyframes forgeSparkFly {
   0% {
