@@ -6,6 +6,10 @@
   --surface: #ffffff;
   --border: #dcdcdc;
   --highlight: #fafafa;
+  --forge-steel: #5c5f66;
+  --light-forge-steel: #757982;
+  --forge-orange: #e25822;
+  --forge-orange-light: #ff632e;
 }
 
 html, body, .card, .navbar, input, textarea, select, button {
@@ -33,7 +37,7 @@ body {
 }
 
 .navbar-brand {
-  color: var(--accent);
+  color: var(--light-forge-steel);
   font-weight: bold;
 }
 
@@ -42,7 +46,7 @@ a.nav-link {
 }
 
 a.nav-link:hover {
-  color: var(--accent);
+  color: var(--light-forge-steel);
 }
 
 .list-group-item .list-group {
@@ -80,20 +84,27 @@ input:focus, select:focus, textarea:focus {
   box-shadow: 0 0 4px rgba(226, 88, 34, 0.3);
 }
 
-.btn {
-  background-color: var(--accent);
-  color: #fff;
-  border: none;
+.btn, .btn-primary, .btn-warning {
+  background-color: var(--forge-steel) !important;
+  color: white !important;
+  border: none !important;
+  font-weight: bold;
+  letter-spacing: 0.5px;
+  transition: background-color 0.2s ease, box-shadow 0.3s ease;
 }
 
-.btn:hover {
-  background-color: #ff632e;
+.btn:hover, .btn-primary:hover, .btn-warning:hover {
+  background-color: #757982 !important; /* lighter steel */
+  box-shadow: 0 0 12px rgba(173, 216, 230, 0.6), /* light blue outer glow */
+              0 0 20px rgba(173, 216, 230, 0.4) inset; /* subtle inner light */
+  color: white !important;
 }
+
 
 .alert {
   background-color: #fff4ef;
   color: var(--primary);
-  border-left: 4px solid var(--accent);
+  border-left: 4px solid var(--forge-steel);
 }
 
 ::placeholder {
@@ -106,7 +117,7 @@ input:focus, select:focus, textarea:focus {
   left: 50%;
   transform: translate(-50%, -50%);
   font-size: 6rem;
-  color: var(--forge-orange);
+  color: var(--forge-steel);
   z-index: 9999;
   display: none;
   pointer-events: none;
@@ -115,10 +126,10 @@ input:focus, select:focus, textarea:focus {
 #hammer-strike i {
   font-size: 18rem; /* 3x bigger */
   text-shadow: 
-    0 0 25px var(--forge-orange-light),
-    0 0 45px var(--forge-orange),
-    0 0 80px var(--forge-orange);
-    color: var(--forge-orange) !important;
+    0 0 25px var(--light-forge-steel),
+    0 0 45px var(--forge-steel),
+    0 0 80px var(--forge-steel);
+    color: var(--forge-steel) !important;
 }
 
 #glow-trail {
@@ -167,6 +178,20 @@ input:focus, select:focus, textarea:focus {
   0% { text-shadow: 0 0 5px var(--forge-orange), 0 0 10px var(--forge-orange-light); }
   50% { text-shadow: 0 0 20px var(--forge-orange-light), 0 0 40px var(--forge-orange); }
   100% { text-shadow: 0 0 5px var(--forge-orange), 0 0 10px var(--forge-orange-light); }
+}
+
+.forgemaster-glow {
+  text-shadow: 0 0 8px var(--forge-orange), 0 0 16px var(--forge-orange-light);
+  animation: steadyForgePulse 4s ease-in-out infinite alternate;
+}
+
+@keyframes steadyForgePulse {
+  0% {
+    text-shadow: 0 0 8px var(--forge-orange), 0 0 16px var(--forge-orange-light);
+  }
+  100% {
+    text-shadow: 0 0 12px var(--forge-orange-light), 0 0 24px var(--forge-orange);
+  }
 }
 
 #forge-dim-overlay {
