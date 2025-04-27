@@ -229,6 +229,10 @@ def ask_gpt():
     memories = Memory.query.filter_by(user_id=current_user.id)\
         .order_by(Memory.created_at.desc())\
         .limit(20).all()
+    
+    import traceback
+    print(traceback.format_exc())
+
 
     return render_template(
         "todo.html",

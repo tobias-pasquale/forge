@@ -26,7 +26,6 @@
     background-color: var(--forge-bg);
     color: var(--forge-muted);
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    transition: background-color 0.3s ease, color 0.3s ease;
   }
   
   a, .btn-warning{
@@ -247,7 +246,17 @@
   }
   
   .forgemaster-glow {
-    animation: forgeGlow 2.5s ease-in-out infinite;
+    text-shadow: 0 0 8px var(--forge-orange), 0 0 16px var(--forge-orange-light);
+    animation: steadyForgePulse 4s ease-in-out infinite alternate;
+  }
+  
+  @keyframes steadyForgePulse {
+    0% {
+      text-shadow: 0 0 8px var(--forge-orange), 0 0 16px var(--forge-orange-light);
+    }
+    100% {
+      text-shadow: 0 0 12px var(--forge-orange-light), 0 0 24px var(--forge-orange);
+    }
   }
   
   /* Optional subtle sparks effect */
