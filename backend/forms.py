@@ -26,7 +26,7 @@ class LoginForm(FlaskForm):
     password = PasswordField("Password", validators=[DataRequired()])
     submit = SubmitField("Log In")
 
-class ToDoForm(FlaskForm):
+class TaskForm(FlaskForm):
     task = StringField("Task", validators=[DataRequired()])
     due_date = DateField("Due Date", default=date.today)
     priority = SelectField("Priority", choices=[("None", "None"), ("Normal", "Normal"), ("High", "High")], default="Normal")

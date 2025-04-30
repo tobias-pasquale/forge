@@ -1,11 +1,13 @@
+# /forge/backend/models/task.py
+
 from datetime import datetime
 from backend.extensions import db
 
-class ToDo(db.Model):
+class Task(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    task = db.Column(db.String(255), nullable=False)
+    description = db.Column(db.String(255), nullable=False)
     completed = db.Column(db.Boolean, default=False)
-    # completed_at = db.Column(db.DateTime, nullable=True)  # ✅ This line is new
+    completed_at = db.Column(db.DateTime, nullable=True)
 
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     due_date = db.Column(db.DateTime, nullable=True)
@@ -13,4 +15,4 @@ class ToDo(db.Model):
     recurring = db.Column(db.String(20), default='None')  # 'None', 'Daily', 'Weekly'
 
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    user = db.relationship("User", backref="todos")
+    user = db.relationship("User", backref="tasks")

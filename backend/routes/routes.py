@@ -4,10 +4,10 @@ from flask_login import login_user, logout_user, login_required, current_user
 from datetime import datetime, timedelta, date
 from collections import Counter
 from backend import db
-from backend.forms import SessionForm, RegisterForm, LoginForm, ToDoForm, AskGptForm
+from backend.forms import SessionForm, RegisterForm, LoginForm, TaskForm, AskGptForm
 from backend.models.session import Session
 from backend.models.user import User
-from backend.models.todo import ToDo
+from backend.models.task import Task
 
 
 import os
@@ -79,17 +79,17 @@ def logout():
     flash("Logged out.", "info")
     return redirect(url_for("main.login"))
 
-@main.route("/todo", methods=["GET", "POST"])
+@main.route("/task", methods=["GET", "POST"])
 @login_required
-def todo():
-    form = ToDoForm()
+def task():
+    form = TaskForm()
     ask_form = AskGptForm()
     if form.validate_on_submit():
         task_text = form.task.data
         due_date = form.due_date.data
         priority = form.priority.data
 
-        new_task = ToDo(
+        new_task = Task(
             task=task_text,
             due_date=due_date,
             priority=priority,
@@ -99,9 +99,9 @@ def todo():
         db.session.add(new_task)
         db.session.commit()
         flash("Task added.", "success")
-        return redirect(url_for("main.todo"))
+        return redirect(url_for("main.task"))
 
-    tasks = ToDo.query.filter_by(user_id=current_user.id).order_by(ToDo.created_at.desc()).all()
+    tasks = Task.query.filter_by(user_id=current_user.id).order_by(Task.created_at.desc()).all()
     streak = calculate_streak(tasks)
     message = None
     if streak >= 3:
@@ -111,7 +111,7 @@ def todo():
     
     
     return render_template(
-        "todo.html",
+        "task.html",
         tasks=tasks,
         form=form,
         ask_form=ask_form,
@@ -121,18 +121,18 @@ def todo():
         now=date.today()
     )
 
-@main.route("/todo/complete/<int:task_id>", methods=["POST"])
+@main.route("/task/complete/<int:task_id>", methods=["POST"])
 @login_required
 def complete_task(task_id):
-    task = ToDo.query.get_or_404(task_id)
+    task = Task.query.get_or_404(task_id)
     if task.user_id != current_user.id:
         flash("Access denied.", "danger")
-        return redirect(url_for("main.todo"))
+        return redirect(url_for("main.task"))
     task.completed = not task.completed
     db.session.commit()
-    return redirect(url_for("main.todo"))
+    return redirect(url_for("main.task"))
 
-@main.route("/todo/ask", methods=["POST"])
+@main.route("/task/ask", methods=["POST"])
 @login_required
 def ask_gpt():
     from openai import OpenAI
@@ -142,14 +142,14 @@ def ask_gpt():
     client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
     ask_form = AskGptForm()
-    todo_form = ToDoForm()
+    task_form = TaskForm()
     response = None
 
     if ask_form.validate_on_submit():
         prompt = ask_form.prompt.data
 
         # 🧠 Fetch user's To-Do list to provide memory/context
-        user_tasks = ToDo.query.filter_by(user_id=current_user.id).order_by(ToDo.created_at.desc()).all()
+        user_tasks = Task.query.filter_by(user_id=current_user.id).order_by(Task.created_at.desc()).all()
         task_list_summary = "\n".join([
             f"- {'[✔]' if t.completed else '[ ]'} {t.task} | Due: {t.due_date.strftime('%b %d') if t.due_date else 'N/A'} | Priority: {t.priority or 'Normal'} | Recurring: {t.recurring or 'None'}"
             for t in user_tasks
@@ -224,7 +224,7 @@ def ask_gpt():
         db.session.commit()
 
     # 🧠 Rebuild template context
-    tasks = ToDo.query.filter_by(user_id=current_user.id).order_by(ToDo.created_at.desc()).all()
+    tasks = Task.query.filter_by(user_id=current_user.id).order_by(Task.created_at.desc()).all()
     streak = calculate_streak(tasks)
     memories = Memory.query.filter_by(user_id=current_user.id)\
         .order_by(Memory.created_at.desc())\
@@ -235,9 +235,9 @@ def ask_gpt():
 
 
     return render_template(
-        "todo.html",
+        "task.html",
         tasks=tasks,
-        form=todo_form,
+        form=task_form,
         ask_form=ask_form,
         response=response,
         streak=streak,
@@ -260,11 +260,11 @@ def calculate_streak(tasks):
 @login_required
 def edit_task(task_id):
     from backend import db
-    task = ToDo.query.get_or_404(task_id)
+    task = Task.query.get_or_404(task_id)
 
     if task.user_id != current_user.id:
         flash("Unauthorized access", "danger")
-        return redirect(url_for('main.todo'))
+        return redirect(url_for('main.task'))
 
     task_desc = request.form.get("edited_task")
     due_date = request.form.get("edited_due_date")
@@ -283,22 +283,22 @@ def edit_task(task_id):
 
     db.session.commit()
     flash("Task updated.", "success")
-    return redirect(url_for('main.todo'))
+    return redirect(url_for('main.task'))
 
 @main.route('/delete_task/<int:task_id>', methods=['POST'])
 @login_required
 def delete_task(task_id):
     from backend import db
-    task = ToDo.query.get_or_404(task_id)
+    task = Task.query.get_or_404(task_id)
 
     if task.user_id != current_user.id:
         flash("Unauthorized access", "danger")
-        return redirect(url_for('main.todo'))
+        return redirect(url_for('main.task'))
 
     db.session.delete(task)
     db.session.commit()
     flash("Task deleted.", "info")
-    return redirect(url_for('main.todo'))
+    return redirect(url_for('main.task'))
 
 @main.route("/creed")
 @login_required
@@ -309,7 +309,7 @@ def creed():
 @login_required
 def toggle_task(task_id):
     from backend import db
-    task = ToDo.query.get_or_404(task_id)
+    task = Task.query.get_or_404(task_id)
 
     if task.user_id != current_user.id:
         return {'error': 'Unauthorized'}, 403

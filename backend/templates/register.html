@@ -1,3 +1,5 @@
+<!-- /forge/backend/templates/register.html (Corrected) -->
+
 {% extends "base.html" %}
 {% block content %}
 <div class="container mt-5">
@@ -16,7 +18,9 @@
     <div class="mb-3">
       {{ form.confirm_password.label }} {{ form.confirm_password(class="form-control") }}
     </div>
-    {{ form.submit(class="btn btn-warning") }}
+    <div class="mb-3">
+      {{ form.submit(class="btn btn-warning") }}
+    </div>
   </form>
 </div>
 {% endblock %}

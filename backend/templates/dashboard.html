@@ -1,0 +1,22 @@
+<!-- /forge/backend/templates/dashboard.html -->
+
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-5">
+  <h2 class="mb-4">Welcome back to the Forge, {{ current_user.username }}.</h2>
+
+  <div class="row">
+    <div class="col-md-4 mb-3">
+      <a href="{{ url_for('tasks.view_tasks') }}" class="btn btn-warning w-100">View Tasks</a>
+    </div>
+    <div class="col-md-4 mb-3">
+      <a href="{{ url_for('calendar.calendar') }}" class="btn btn-warning w-100">View Calendar</a>
+    </div>
+    <div class="col-md-4 mb-3">
+      <form action="{{ url_for('core.start_deep_work') }}" method="POST">
+        <button type="submit" class="btn btn-danger w-100">Start Deep Work</button>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

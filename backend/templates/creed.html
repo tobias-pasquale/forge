@@ -1,0 +1,38 @@
+<!-- /forge/backend/templates/creed.html -->
+
+{% extends "base.html" %}
+{% block content %}
+<div class="container text-center mt-5">
+  <h1 class="text-warning mb-4 display-4">🛡️ The Forge Creed</h1>
+
+  <blockquote class="blockquote fs-5 text-light">
+    <p>I act from purpose, not for permission.<br>
+    I seek truth, not applause.<br>
+    Outcomes are data, not definitions.</p>
+
+    <p>Victory humbles me.<br>
+    Failure instructs me.<br>
+    Neither owns me.</p>
+
+    <p>I do not beg reality to favor me.<br>
+    I build until reality yields.</p>
+
+    <p>I welcome pressure.<br>
+    I refine through friction.<br>
+    I sharpen through solitude.</p>
+
+    <p>I am not owed success.<br>
+    I earn alignment between what I build and what I become.</p>
+
+    <p>Each task is a brick.<br>
+    Each decision is a hammer strike.<br>
+    I forge myself, daily, without guarantee, without mercy, without end.</p>
+  </blockquote>
+
+  <div class="mt-5">
+    <a href="{{ url_for('tasks.view_tasks') }}" class="btn btn-outline-warning btn-lg">
+      Return to the Tasks
+    </a>
+  </div>
+</div>
+{% endblock %}
