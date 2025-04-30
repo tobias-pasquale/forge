@@ -1,234 +1,99 @@
 {% extends "base.html" %}
 
 {% block content %}
-  <h1 class="mb-4">Your Forge Tasks</h1>
-  
+<h1 class="mb-4">Your Forge Tasks</h1>
 
-  <!-- Flash Messages
-  {% with messages = get_flashed_messages(with_categories=true) %}
-    {% if messages %}
-      {% for category, message in messages %}
-        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
-          {{ message }}
-          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-      {% endfor %}
-    {% endif %}
-  {% endwith %} -->
-
-  <!-- Motivational Streak Message -->
-  {% if streak %}
-    <div class="alert alert-warning alert-dismissible fade show">
-      🔥 <strong>{{ message }}</strong>
-      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+<!-- Statistics Panel -->
+<div class="row g-3 mb-4">
+  <div class="col-md-3">
+    <div class="card text-center   border border-secondary">
+      <div class="card-body">
+        <h6>Total Tasks</h6>
+        <h3>{{ tasks|length }}</h3>
+      </div>
     </div>
-  {% endif %}
-
-  <!-- Task Entry Form -->
-  <form method="POST" class="mb-4 row g-2 align-items-end">
-    {{ form.hidden_tag() }}
-  
-    <div class="col-md-5">
-      {{ form.task.label(class="form-label") }}
-      {{ form.task(class="form-control", placeholder="Add a new task...") }}
-    </div>
-  
-    <div class="col-md-2">
-      {{ form.due_date.label(class="form-label") }}
-      {{ form.due_date(class="form-control") }}
-    </div>
-  
-    <div class="col-md-2">
-      {{ form.priority.label(class="form-label") }}
-      {{ form.priority(class="form-select") }}
-    </div>
-  
-    <div class="col-md-2">
-      {{ form.recurring.label(class="form-label") }}
-      {{ form.recurring(class="form-select") }}
-    </div>
-  
-    <div class="col-md-1">
-      {{ form.submit(class="btn btn-warning w-100") }}
-    </div>
-  </form>
-  
-
-  {# Split active and completed tasks #}
-  {% set active_tasks = tasks | selectattr("completed", "equalto", False) | list %}
-  {% set completed_tasks = tasks | selectattr("completed", "equalto", True) | list %}
-
-  <!-- Active Tasks -->
-  <h5 class="mb-3 text-warning">Active Tasks</h5>
-  <ul id="activeTasksList" class="list-group mb-4">
-    {% for task in active_tasks %}
-      <li id="task-{{ task.id }}" class="list-group-item d-flex justify-content-between align-items-center border-secondary">
-        <div class="d-flex align-items-center">
-          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-          <input type="checkbox" 
-                name="completed" 
-                onchange="toggleTaskComplete({{ task.id }})" 
-                class="form-check-input me-2"
-            {% if task.completed %}checked{% endif %}>
-          <span style="{% if task.completed %}text-decoration: line-through; color: #aaa;{% endif %}">
-            {{ task.description }}
-            {% if task.due_date %}
-              <span class="badge bg-dark border text-light ms-2">
-                Due Date: {{ task.due_date.strftime('%b %d') }}
-              </span>
-            {% endif %}
-
-            {% if task.priority and task.priority != 'None' %}
-              <span class="badge 
-                {% if task.priority == 'High' %}
-                  bg-danger
-                {% else %}
-                  bg-warning text-dark
-                {% endif %}
-                ms-1">
-                Priority: {{ task.priority }}
-              </span>
-            {% endif %}
-
-
-            {% if task.recurring and task.recurring != 'None' %}
-              <span class="badge bg-secondary text-light ms-1">
-                Recurrence: {{ task.recurring }}
-              </span>
-            {% endif %}
-          </span>
-        </div>
-        <div class="d-flex align-items-center">
-          <button class="btn btn-sm btn-outline-secondary me-1"
-            onclick="openEditModal({{ task.id }}, '{{ task.description }}', '{{ task.due_date.strftime('%Y-%m-%d') if task.due_date else '' }}', '{{ task.priority }}', '{{ task.recurring }}')">
-            <i class="bi bi-pencil"></i>
-          </button>
-          <button class="btn btn-sm btn-outline-danger" onclick="openDeleteModal({{ task.id }})" type="button">
-            <i class="bi bi-trash"></i>
-          </button>
-        </div>
-        
-        <!-- 🛠 Hidden Edit Form -->
-        <form id="edit-form-{{ task.id }}" action="{{ url_for('tasks.edit_task', task_id=task.id) }}" method="POST" class="d-none w-100 mt-3">
-          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-          <div class="row g-2 align-items-center">
-            <div class="col-md-4">
-              <input type="text" name="edited_task" value="{{ task.description }}" class="form-control" required>
-            </div>
-            <div class="col-md-2">
-              <input type="date" name="edited_due_date" value="{{ task.due_date.strftime('%Y-%m-%d') if task.due_date else '' }}" class="form-control">
-            </div>
-            <div class="col-md-2">
-              <select name="edited_priority" class="form-select">
-                <option value="None" {% if task.priority == 'None' %}selected{% endif %}>None</option>
-                <option value="Normal" {% if task.priority == 'Normal' %}selected{% endif %}>Normal</option>
-                <option value="High" {% if task.priority == 'High' %}selected{% endif %}>High</option>
-              </select>
-            </div>
-            <div class="col-md-2">
-              <select name="edited_recurring" class="form-select">
-                <option value="None" {% if task.recurring == 'None' %}selected{% endif %}>None</option>
-                <option value="Daily" {% if task.recurring == 'Daily' %}selected{% endif %}>Daily</option>
-                <option value="Weekly" {% if task.recurring == 'Weekly' %}selected{% endif %}>Weekly</option>
-              </select>
-            </div>
-            <div class="col-md-2">
-              <button type="submit" class="btn btn-sm btn-warning w-100">Save</button>
-            </div>
-          </div>
-        </form>
-      </li>
-
-    {% else %}
-      <li class="list-group-item text-center text-muted border-secondary">No active tasks. Go do something dangerous and fulfilling.</li>
-    {% endfor %}
-  </ul>
-
-  <!-- Collapse Button for Completed Tasks -->
-  <button class="btn btn-sm btn-outline-secondary mb-3" type="button" data-bs-toggle="collapse" data-bs-target="#completedTasks" aria-expanded="false" aria-controls="completedTasks">
-    Show Completed Tasks ({{ completed_tasks | length }})
-  </button>
-
-  
-  
-
-  <!-- Completed Tasks Section -->
-  <div class="collapse" id="completedTasks">
-    <h5 class="mt-3 mb-2">Completed Tasks</h5>
-    <ul id="completedTasksList" class="list-group mb-4">
-      {% for task in completed_tasks %}
-        <li id="task-{{ task.id }}" class="list-group-item d-flex justify-content-between align-items-center border-secondary">
-          <div class="d-flex align-items-center">
-          <input type="checkbox" 
-                name="completed" 
-                onchange="toggleTaskComplete({{ task.id }})" 
-                class="form-check-input me-2"
-            {% if task.completed %}checked{% endif %}>  
-            <span style="text-decoration: line-through; color: #666;">
-              {{ task.description }}
-              {% if task.due_date %}
-                <span class="badge bg-dark border text-light ms-2">
-                  Due Date: {{ task.due_date.strftime('%b %d') }}
-                </span>
-              {% endif %}
-
-              {% if task.priority and task.priority != 'None' %}
-                <span class="badge bg-warning text-dark ms-1">
-                  Priority: {{ task.priority }}
-                </span>
-              {% endif %}
-
-              {% if task.recurring and task.recurring != 'None' %}
-                <span class="badge bg-secondary text-light ms-1">
-                  Recurrence: {{ task.recurring }}
-                </span>
-              {% endif %}
-            </span>
-          </div>
-          <div class="d-flex align-items-center">
-            <button class="btn btn-sm btn-outline-secondary me-1"
-              onclick="openEditModal({{ task.id }}, '{{ task.description }}', '{{ task.due_date.strftime('%Y-%m-%d') if task.due_date else '' }}', '{{ task.priority }}', '{{ task.recurring }}')">
-              <i class="bi bi-pencil"></i>
-            </button>
-            <button class="btn btn-sm btn-outline-danger" onclick="openDeleteModal({{ task.id }})" type="button">
-              <i class="bi bi-trash"></i>
-            </button>
-          </div>
-        </li>
-      {% else %}
-        <li class="list-group-item text-center border-secondary">
-          Nothing completed. Start somewhere.
-        </li>
-      {% endfor %}
-    </ul>
   </div>
-
-  <!-- Delete Confirmation Modal -->
-<div class="modal fade" id="confirmDeleteModal" tabindex="-1" aria-labelledby="confirmDeleteLabel" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content bg-dark text-light border border-secondary">
-      <div class="modal-header">
-        <h5 class="modal-title text-warning" id="confirmDeleteLabel">Confirm Deletion</h5>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+  <div class="col-md-3">
+    <div class="card text-center   border border-secondary">
+      <div class="card-body">
+        <h6>Completed</h6>
+        <h3>{{ completed_tasks|length }}</h3>
       </div>
-      <div class="modal-body">
-        Are you sure you want to delete this task? This action cannot be undone.
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card text-center   border border-secondary">
+      <div class="card-body">
+        <h6>Streak</h6>
+        <h3>{{ streak }}</h3>
       </div>
-      <div class="modal-footer">
-        <form id="deleteForm" method="POST">
-          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-          <button type="submit" class="btn btn-danger">Delete</button>
-        </form>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card text-center   border border-secondary">
+      <div class="card-body">
+        <h6>Today's Tasks</h6>
+        <h3>{{ tasks|selectattr("due_date", "equalto", now.date())|list|length }}</h3>
       </div>
     </div>
   </div>
 </div>
 
-  <!-- Edit Task Modal -->
+<div class="row">
+  <!-- Left: Tasks -->
+  <div class="col-12 col-lg-8">
+    <form method="POST" class="mb-4 row gx-3 gy-2">
+      {{ form.hidden_tag() }}
+      <div class="col-md-5">
+        {{ form.task.label(class="form-label") }}
+        {{ form.task(class="form-control", placeholder="Add a new task...") }}
+      </div>
+      <div class="col-md-2">
+        {{ form.due_date.label(class="form-label") }}
+        {{ form.due_date(class="form-control") }}
+      </div>
+      <div class="col-md-2">
+        {{ form.priority.label(class="form-label") }}
+        {{ form.priority(class="form-select") }}
+      </div>
+      <div class="col-md-2">
+        {{ form.recurring.label(class="form-label") }}
+        {{ form.recurring(class="form-select") }}
+      </div>
+      <div class="col-12 col-md-auto">
+        {{ form.submit(class="btn btn-warning w-100") }}
+      </div>     
+    </form>
+
+    {% include 'partials/task_list.html' %}
+  </div>
+
+  <!-- Right: Calendar -->
+  <div class="col-lg-4">
+    <div class="card   border border-secondary">
+      <div class="card-header text-warning">📆 Today's Calendar</div>
+      <div class="card-body small">
+        {% if calendar_events %}
+          <ul class="list-group list-group-flush">
+            {% for event in calendar_events %}
+              <li class="list-group-item   border-secondary">
+                <strong>{{ event.title }}</strong><br>
+                <small>{{ event.start_time.strftime('%I:%M %p') }} - {{ event.end_time.strftime('%I:%M %p') }}</small>
+              </li>
+            {% endfor %}
+          </ul>
+        {% else %}
+          <p class="text-muted">Nothing scheduled for today. Time to build something immortal.</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Task Modal -->
 <div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-lg">
-    <div class="modal-content bg-dark text-light border border-secondary">
+    <div class="modal-content   border border-secondary">
       <form method="POST" id="editModalForm">
         <div class="modal-header">
           <h5 class="modal-title text-warning" id="editModalLabel">Edit Task</h5>
@@ -269,42 +134,72 @@
   </div>
 </div>
 
-
-  <!-- Ask Forge AI -->
-  <form method="POST" action="{{ url_for('forge_ai.ask_gpt') }}" class="mb-4">
-    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-    <div class="mb-3">
-      <label for="prompt" class="form-label text-warning">Ask Forge AI</label>
-      <textarea name="prompt" rows="2" class="form-control" placeholder="Ask Forge AI"></textarea>
-    </div>
-    <button type="submit" class="btn btn-outline-warning">Ask Forge</button>
-  </form>
-
-  <!-- GPT Response -->
-  {% if response %}
-    <div class="alert alert-info mt-4 forge-memory-response">
-      <strong>Forge AI:</strong><br>
-      {{ response }}
-    </div>
-  {% endif %}
-
-  <!-- Optional Memory Log -->
-  {% if memories %}
-  <div class="card border border-secondary mb-5">
-    <div class="card-header text-warning">Forge AI Memory</div>
-    <div class="card-body">
-      {% for mem in memories %}
-        <div class="mb-3">
-          <div><strong class="forge-memory-user">🧠 You:</strong> {{ mem.prompt }}</div>
-          <div><strong>🦾 Forge AI:</strong> {{ mem.response }}</div>
-          <div class="text-end">
-            <small class="text-secondary">{{ mem.created_at.strftime('%b %d, %I:%M %p') }}</small>
-          </div>
-        </div>
-        {% if not loop.last %}<hr>{% endif %}
-      {% endfor %}
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="confirmDeleteModal" tabindex="-1" aria-labelledby="confirmDeleteLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content   border border-secondary">
+      <div class="modal-header">
+        <h5 class="modal-title text-warning" id="confirmDeleteLabel">Confirm Deletion</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        Are you sure you want to delete this task? This action cannot be undone.
+      </div>
+      <div class="modal-footer">
+        <form id="deleteForm" method="POST">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-danger">Delete</button>
+        </form>
+      </div>
     </div>
   </div>
-  {% endif %}
+</div>
 
+<script>
+function toggleTaskComplete(taskId) {
+  const checkbox = document.querySelector(`#task-${taskId} input[type="checkbox"]`);
+  const isCompleted = checkbox.checked;
+
+  fetch(`/toggle_task/${taskId}`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRFToken': document.querySelector('input[name="csrf_token"]').value
+    },
+    body: JSON.stringify({ completed: isCompleted })
+  })
+  .then(response => {
+    if (!response.ok) throw new Error('Failed to complete task');
+    return response.json();
+  })
+  .then(data => {
+    const taskItem = document.getElementById(`task-${taskId}`);
+    if (!taskItem) return;
+    const span = taskItem.querySelector('span');
+    span.style.textDecoration = data.completed ? 'line-through' : 'none';
+    span.style.color = data.completed ? '#aaa' : '';
+    if (data.new_task_id) {
+      location.reload();
+    }
+  })
+  .catch(error => console.error('Error:', error));
+}
+
+function openEditModal(id, text, date, priority, recurring) {
+  const form = document.getElementById('editModalForm');
+  form.action = `/edit_task/${id}`;
+  document.getElementById('modalTaskInput').value = text;
+  document.getElementById('modalDueDate').value = date || '';
+  document.getElementById('modalPriority').value = priority || 'None';
+  document.getElementById('modalRecurring').value = recurring || 'None';
+  new bootstrap.Modal(document.getElementById('editModal')).show();
+}
+
+function openDeleteModal(taskId) {
+  const form = document.getElementById('deleteForm');
+  form.action = `/delete_task/${taskId}`;
+  new bootstrap.Modal(document.getElementById('confirmDeleteModal')).show();
+}
+</script>
 {% endblock %}

@@ -4,7 +4,8 @@ from flask import Blueprint, render_template, redirect, url_for, request, flash,
 from flask_login import login_required, current_user
 from backend.extensions import db
 from backend.models.task import Task
-from datetime import datetime
+from backend.models.calendar_event import CalendarEvent
+from datetime import datetime, timedelta, date
 from backend.forms import TaskForm
 
 tasks = Blueprint('tasks', __name__)
@@ -13,6 +14,17 @@ tasks = Blueprint('tasks', __name__)
 @login_required
 def view_tasks():
     form = TaskForm()
+    all_tasks = Task.query.filter_by(user_id=current_user.id).order_by(Task.created_at.desc()).all()
+    completed = [t for t in all_tasks if t.completed]
+    streak = len([t for t in completed if t.completed_at and t.completed_at.date() == datetime.utcnow().date()])
+
+    # Pull today's calendar events
+    today = datetime.utcnow().date()
+    events = CalendarEvent.query.filter_by(user_id=current_user.id).filter(
+        CalendarEvent.start_time >= datetime.combine(today, datetime.min.time()),
+        CalendarEvent.start_time <= datetime.combine(today, datetime.max.time())
+    ).order_by(CalendarEvent.start_time.asc()).all()
+
 
     if form.validate_on_submit():
         new_task = Task(
@@ -28,7 +40,7 @@ def view_tasks():
         return redirect(url_for('tasks.view_tasks'))
 
     all_tasks = Task.query.filter_by(user_id=current_user.id).order_by(Task.created_at.desc()).all()
-    return render_template('tasks.html', tasks=all_tasks, form=form)
+    return render_template('tasks.html', tasks=all_tasks, form=form, completed_tasks=completed, streak=streak, calendar_events=events, now=datetime.utcnow())
 
 @tasks.route('/add', methods=['POST'])
 @login_required
@@ -101,5 +113,43 @@ def toggle_task(task_id):
     data = request.get_json()
     task.completed = data.get('completed', False)
     task.completed_at = datetime.utcnow() if task.completed else None
+
+    new_task = None
+    if task.completed and task.recurring and task.recurring != 'None':
+        # Calculate new due date based on recurrence type
+        if task.due_date:
+            if task.recurring == 'Daily':
+                new_due_date = task.due_date + timedelta(days=1)
+            elif task.recurring == 'Weekly':
+                new_due_date = task.due_date + timedelta(weeks=1)
+            else:
+                new_due_date = None
+        else:
+            new_due_date = datetime.utcnow().date() + timedelta(days=1)
+
+        # Clone task (but not completed)
+        new_task = Task(
+            description=task.description,
+            due_date=new_due_date,
+            priority=task.priority,
+            recurring=task.recurring,
+            user_id=task.user_id,
+            completed=False
+        )
+        db.session.add(new_task)
+
     db.session.commit()
-    return jsonify({'status': 'success', 'completed': task.completed})
+
+    response = {
+        'status': 'success',
+        'completed': task.completed
+    }
+
+    if new_task:
+        response.update({
+            'new_task_id': new_task.id,
+            'description': new_task.description,
+            'recurring': new_task.recurring
+        })
+
+    return jsonify(response)

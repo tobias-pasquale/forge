@@ -2,26 +2,67 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Forge – Deep Work Tracker</title>
+  <title>Warriors Forge - Not for the Weak</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link id="theme-style" rel="stylesheet" href="{{ url_for('static', filename='css/forge-light.css') }}">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+  <style>
+    #forge-orb {
+      position: fixed;
+      bottom: 30px;
+      right: 30px;
+      border-radius: 50%;
+      width: 60px;
+      height: 60px;
+      z-index: 1050;
+    }
+
+    #forge-modal-container {
+      position: fixed;
+      bottom: 100px;
+      right: 30px;
+      width: 300px;
+      z-index: 1050;
+      display: none;
+    }
+
+    .smoke-trail {
+      position: fixed;
+      width: 20px;
+      height: 20px;
+      background: radial-gradient(circle, #ccc 30%, transparent 70%);
+      border-radius: 50%;
+      opacity: 0.4;
+      animation: fadeOut 4s ease-out forwards;
+      pointer-events: none;
+    }
+
+    @keyframes fadeOut {
+      to {
+        opacity: 0;
+        transform: translateY(-20px);
+      }
+    }
+  </style>
 </head>
 <body>
 
 <input type="hidden" id="global-csrf-token" name="csrf_token" value="{{ csrf_token() }}">
 
-<div id="forge-dim-overlay"></div>
 <div id="impact-wave"></div>
+
 <nav class="navbar navbar-expand-lg shadow-sm navbar-light bg-light" id="forge-navbar">
   <div class="container">
-    <a class="navbar-brand" href="/">FORGE</a>
+    <a class="navbar-brand" id="forge-brand" href="/">FORGE</a>
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#forgeNavbar" aria-controls="forgeNavbar" aria-expanded="false" aria-label="Toggle navigation">
       <span class="navbar-toggler-icon"></span>
     </button>
     <div class="collapse navbar-collapse" id="forgeNavbar">
       <ul class="navbar-nav ms-auto">
+        <li class="nav-item">
+          <a class="nav-link" href="{{ url_for('forge_ai.ai_chat') }}">The Blacksmith (AI)</a>
+        </li>
         <li class="nav-item">
           <a class="nav-link" href="{{ url_for('core.focus') }}">Deep Work</a>
         </li>
@@ -38,7 +79,7 @@
           <a class="nav-link" href="{{ url_for('auth.logout') }}">Logout</a>
         </li>
       </ul>
-      <button id="theme-toggle" class="btn btn-sm btn-outline-warning ms-3">Dark Mode</button>
+      <button id="theme-toggle" class="btn btn-sm btn-outline-warning ms-3">Toggle Theme</button>
     </div>
   </div>
 </nav>
@@ -54,236 +95,102 @@
   {% block content %}{% endblock %}
 </main>
 
+<!-- Floating Forge AI Orb -->
+<button id="forge-orb" class="btn btn-warning">🛠</button>
+<div id="forge-modal-container">
+  <div class="card bg-dark text-light border-warning">
+    <div class="card-header d-flex justify-content-between align-items-center">
+      <span>Forge AI</span>
+      <button class="btn-close btn-close-white" id="close-forge-modal"></button>
+    </div>
+    <div class="card-body">
+      <form id="forge-float-form">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <textarea id="float-input" name="prompt" class="form-control mb-2" placeholder="Speak..." rows="3"></textarea>
+        <button class="btn btn-sm btn-warning w-100">Send</button>
+      </form>
+      <div id="float-response" class="mt-2 small text-light"></div>
+    </div>
+  </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-
 <script>
+  const forgeBrand = document.getElementById('forge-brand');
+  let emberTimeout;
 
-  // Smoke Trail Effect
-
-
-  const forge = document.querySelector('.navbar-brand');
-  forge.addEventListener('mouseenter', () => {
-    let duration = 3500;
-    let start = Date.now();
-
-    const trailInterval = setInterval(() => {
+  // Cursor smoke trail
+  forgeBrand.addEventListener('mouseenter', () => {
+    const start = Date.now();
+    const duration = 3000;
+    const interval = setInterval(() => {
       const now = Date.now();
-      if (now - start > duration) {
-        clearInterval(trailInterval);
-        return;
-      }
-
+      if (now - start > duration) return clearInterval(interval);
       const trail = document.createElement('div');
       trail.className = 'smoke-trail';
-      trail.style.left = `${mouseX}px`;
-      trail.style.top = `${mouseY}px`;
+      trail.style.left = `${event.clientX}px`;
+      trail.style.top = `${event.clientY}px`;
       document.body.appendChild(trail);
-
-      setTimeout(() => {
-        trail.remove();
-      }, 1000);
-    }, 50);
+      setTimeout(() => trail.remove(), 2000);
+    }, 100);
   });
 
-  let mouseX = 0;
-  let mouseY = 0;
-  document.addEventListener('mousemove', (e) => {
-    mouseX = e.clientX;
-    mouseY = e.clientY;
+  // Long-press effect with orange cursor
+  forgeBrand.addEventListener('mousedown', (e) => {
+    emberTimeout = setTimeout(() => {
+      document.body.style.cursor = 'pointer';
+      const start = Date.now();
+      const interval = setInterval(() => {
+        const now = Date.now();
+        if (now - start > 10000) {
+          document.body.style.cursor = '';
+          clearInterval(interval);
+        }
+        const trail = document.createElement('div');
+        trail.className = 'smoke-trail';
+        trail.style.left = `${e.clientX}px`;
+        trail.style.top = `${e.clientY}px`;
+        document.body.appendChild(trail);
+        setTimeout(() => trail.remove(), 3000);
+      }, 150);
+    }, 5000);
   });
 
-  // Task Edit Form Toggle
+  forgeBrand.addEventListener('mouseup', () => {
+    clearTimeout(emberTimeout);
+    document.body.style.cursor = '';
+  });
 
-
-  function toggleEditForm(taskId) {
-    const form = document.getElementById(`edit-form-${taskId}`);
-    form.classList.toggle('d-none');
-  }
-
-  function openEditModal(taskId, taskText, dueDate, priority, recurring) {
-  const form = document.getElementById('editModalForm');
-  form.action = `/edit_task/${taskId}`;
-  document.getElementById('modalTaskInput').value = taskText;
-  document.getElementById('modalDueDate').value = dueDate || '';
-  document.getElementById('modalPriority').value = priority || 'None';
-  document.getElementById('modalRecurring').value = recurring || 'None';
-
-  const modal = new bootstrap.Modal(document.getElementById('editModal'));
-  modal.show();
-}
-
-
-
-// Delete Confirmation Modal
-
-  function openDeleteModal(taskId) {
-    const form = document.getElementById('deleteForm');
-    form.action = `/delete_task/${taskId}`; // This works because your route is literally /delete_task/<int:task_id>
-
-    const modal = new bootstrap.Modal(document.getElementById('confirmDeleteModal'));
-    modal.show();
-  }
-
-// Theme Toggle
-
-  const toggleBtn = document.getElementById('theme-toggle');
-  const themeLink = document.getElementById('theme-style');
-  const navbar = document.getElementById('forge-navbar');
-
-  // Define exact paths
-  const darkTheme = "{{ url_for('static', filename='css/forge-dark.css') }}";
-  const lightTheme = "{{ url_for('static', filename='css/forge-light.css') }}";
-
-  // Load from localStorage
-  const storedTheme = localStorage.getItem('theme');
+  const themeToggle = document.getElementById("theme-toggle");
+  const themeStyle = document.getElementById("theme-style");
+  const navbar = document.getElementById("forge-navbar");
+  const storedTheme = localStorage.getItem("theme");
   if (storedTheme) {
-    themeLink.href = storedTheme;
+    themeStyle.href = storedTheme;
     updateNavbarTheme(storedTheme);
   }
 
-  if (storedTheme) {
-  themeLink.href = storedTheme;
-  updateNavbarTheme(storedTheme);
-  
-  if (storedTheme.includes('dark')) {
-    toggleBtn.textContent = "Light Mode";
-  } else {
-    toggleBtn.textContent = "Dark Mode";
-  }
-}
+  themeToggle.addEventListener("click", () => {
+    const lightTheme = "{{ url_for('static', filename='css/forge-light.css') }}";
+    const darkTheme = "{{ url_for('static', filename='css/forge-dark.css') }}";
+    const isDark = themeStyle.href.includes("forge-dark.css");
+    const nextTheme = isDark ? lightTheme : darkTheme;
 
-function toggleTaskComplete(taskId) {
-  const checkbox = document.querySelector(`#task-${taskId} input[type="checkbox"]`);
-  const isCompleted = checkbox.checked;
-
-  fetch(`/toggle_task/${taskId}`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',    // ✅ Say you are sending JSON
-      'X-CSRFToken': document.querySelector('input[name="csrf_token"]').value  // ✅ Protect against CSRF
-    },
-    body: JSON.stringify({ completed: isCompleted })   // ✅ Actually send JSON
-  })
-  .then(response => {
-    if (!response.ok) {
-      throw new Error('Failed to complete task');
-    }
-    return response.json();  // 🔥 parse the JSON response
-  })
-  .then(data => {
-    moveTaskBetweenLists(taskId, data.completed);
-    if (data.completed) {
-    playHammerStrike();
-  }
-  })
-  .catch(error => console.error('Error:', error));
-}
-
-
-
-function moveTaskBetweenLists(taskId, completed) {
-  const taskItem = document.getElementById(`task-${taskId}`);
-  if (!taskItem) return;
-
-  const completedSection = document.getElementById('completedTasksList');
-  const activeSection = document.getElementById('activeTasksList');
-
-  if (completed) {
-    completedSection.appendChild(taskItem);
-    taskItem.querySelector('span').style.textDecoration = 'line-through';
-  } else {
-    activeSection.appendChild(taskItem);
-    taskItem.querySelector('span').style.textDecoration = 'none';
-  }
-}
-
-
-
-
-  // Toggle + save
-  toggleBtn.addEventListener('click', () => {
-  const isDark = themeLink.href.includes('forge-dark.css');
-  const nextTheme = isDark ? lightTheme : darkTheme;
-  
-  themeLink.href = nextTheme;
-  localStorage.setItem('theme', nextTheme);
-  updateNavbarTheme(nextTheme); // fixed
-
-  // 🆕 Update button text
-  toggleBtn.textContent = isDark ? "Dark Mode" : "Light Mode";
-
-  document.body.classList.add("theme-transitioning");
-  setTimeout(() => {
-    document.body.classList.remove("theme-transitioning");
-  }, 200);
-});
+    themeStyle.href = nextTheme;
+    updateNavbarTheme(nextTheme);
+    localStorage.setItem("theme", nextTheme);
+    themeToggle.textContent = isDark ? "Dark Mode" : "Light Mode";
+  });
 
   function updateNavbarTheme(theme) {
-  if (theme.includes('dark')) {
-    navbar.classList.remove('navbar-light', 'bg-light');
-    navbar.classList.add('navbar-dark', 'bg-dark');
-  } else {
-    navbar.classList.remove('navbar-dark', 'bg-dark');
-    navbar.classList.add('navbar-light', 'bg-light');
+    if (theme.includes("dark")) {
+      navbar.classList.remove("navbar-light", "bg-light");
+      navbar.classList.add("navbar-dark", "bg-dark");
+    } else {
+      navbar.classList.remove("navbar-dark", "bg-dark");
+      navbar.classList.add("navbar-light", "bg-light");
+    }
   }
-}
-
-function playHammerStrike() {
-  const hammer = document.getElementById('hammer-strike');
-  const hammerIcon = hammer.querySelector('i');
-  const glowTrail = document.getElementById('glow-trail');
-  const sound = document.getElementById('strike-sound');
-  const wave = document.getElementById('impact-wave');
-  const dimOverlay = document.getElementById('forge-dim-overlay');
-
-  // Dim the screen
-  dimOverlay.style.opacity = '0.7';
-
-  // Reset + show hammer
-  hammer.style.display = 'block';
-  hammer.classList.remove('animate');
-  void hammer.offsetWidth; // Force reflow
-  hammer.classList.add('animate');
-
-  for (let i = 0; i < 8; i++) {
-  const spark = document.createElement('div');
-  spark.className = 'forge-spark';
-  document.body.appendChild(spark);
-
-  spark.style.left = `${50 + (Math.random() - 0.5) * 10}%`;
-  spark.style.top = `${40 + (Math.random() - 0.5) * 5}%`;
-  spark.style.animationDuration = `${0.6 + Math.random() * 0.5}s`;
-
-  setTimeout(() => {
-    spark.remove();
-  }, 1500);
-}
-
-  // Reset glow trail
-  glowTrail.style.animation = 'none';
-  void glowTrail.offsetWidth;
-  glowTrail.style.animation = 'trailPulse 0.6s ease-out forwards';
-
-  // New: Trigger the shockwave
-  wave.style.animation = 'shockwave 0.8s ease-out forwards';
-
-    // New: Shockwave and screen shake
-    wave.style.animation = 'shockwave 0.8s ease-out forwards';
-  document.body.classList.add('forge-shake');
-
-  sound.currentTime = 0;
-  sound.play();
-
-  setTimeout(() => {
-    hammer.style.display = 'none';
-    dimOverlay.style.opacity = '0';
-    wave.style.animation = ''; // Reset for next strike
-    document.body.classList.remove('forge-shake');
-  }, 600);
-}
-
 </script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-
 </body>
 </html>

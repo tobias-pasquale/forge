@@ -1,0 +1,63 @@
+
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-4">
+  <div class="row">
+    <!-- 🧠 Forge AI Chat -->
+    <div class="col-lg-8">
+      <div class="card p-4  border border-secondary">
+        <h3 class="text-warning">Forge AI — The Blacksmith</h3>
+        <form method="POST" action="{{ url_for('forge_ai.ask_gpt') }}">
+          {{ ask_form.hidden_tag() }}
+          <div class="mb-3">
+            {{ ask_form.prompt.label(class="form-label") }}
+            {{ ask_form.prompt(class="form-control", placeholder="Speak to the Blacksmith...") }}
+          </div>
+          <button type="submit" class="btn btn-warning">Send</button>
+        </form>
+
+        {% if response %}
+        <div class="mt-4">
+          <h5 class="text-info">Forge AI Response:</h5>
+          <div class="bg-secondary p-3 rounded">{{ response|safe }}</div>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- 📊 Executive Summary -->
+    <div class="col-lg-4">
+      <div class="card p-3 mb-4 border border-warning">
+        <h5 class="text-warning">🔥 Deep Work Streak</h5>
+        <p>{{ streak }} day{{ '' if streak == 1 else 's' }}</p>
+      </div>
+
+      <div class="card p-3 mb-4 border border-warning">
+        <h5 class="text-warning">🧩 Recent Tasks</h5>
+        <ul class="list-group">
+          {% for task in tasks %}
+          <li class="list-group-item  border-secondary">
+            {{ '[✔]' if task.completed else '[ ]' }} {{ task.description }}
+          </li>
+          {% else %}
+          <li class="list-group-item text-muted">No tasks yet.</li>
+          {% endfor %}
+        </ul>
+      </div>
+
+      <div class="card p-3 mb-4 border border-warning">
+        <h5 class="text-warning">📅 Recent Sessions</h5>
+        <ul class="list-group">
+          {% for session in sessions %}
+          <li class="list-group-item  border-secondary">
+            {{ session.duration }} min | Depth {{ session.depth }} | Impact {{ session.impact }}
+          </li>
+          {% else %}
+          <li class="list-group-item text-muted">No deep work logged.</li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

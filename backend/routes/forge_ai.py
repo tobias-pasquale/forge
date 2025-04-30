@@ -1,292 +1,127 @@
 # /forge/backend/routes/forge_ai.py
 
-from flask import Blueprint, render_template, request, redirect, url_for, flash
+import os
+from flask import Blueprint, render_template, request
 from flask_login import login_required, current_user
-from backend.extensions import db
-from backend.forms import TaskForm, AskGptForm
 from backend.models.task import Task
-from backend.models.memory import Memory
 from backend.models.session import Session
+from backend.models.memory import Memory
+from backend.forms import AskGptForm, TaskForm
+from backend.extensions import db
 from openai import OpenAI
 from datetime import datetime, timedelta
-import os
-import json
-import re
-import calendar
+from dateutil import parser as date_parser
 
 forge_ai = Blueprint('forge_ai', __name__)
 
 @forge_ai.route("/ask_gpt", methods=["POST"])
 @login_required
 def ask_gpt():
-    form = AskGptForm()
+    ask_form = AskGptForm()
     task_form = TaskForm()
+    client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+    prompt = ask_form.prompt.data if ask_form.validate_on_submit() else None
     response = None
 
-    if form.validate_on_submit():
-        prompt = form.prompt.data
-        analysis = analyze_task(prompt)
+    user_tasks = Task.query.filter_by(user_id=current_user.id).order_by(Task.created_at.desc()).all()
+    user_sessions = Session.query.filter_by(user_id=current_user.id).order_by(Session.timestamp.desc()).limit(10).all()
+    user_memory = Memory.query.filter_by(user_id=current_user.id).order_by(Memory.created_at.desc()).limit(7).all()
 
-        if analysis.get("action") == "create_task":
-            due_date = parse_due_date_from_prompt(prompt) or datetime.utcnow().date()
+    task_summary = "\n".join([
+        f"- {'[✔]' if t.completed else '[ ]'} {t.description} | Due: {t.due_date.strftime('%Y-%m-%d') if t.due_date else 'None'} | Priority: {t.priority or 'Normal'} | Recurring: {t.recurring or 'None'}"
+        for t in user_tasks
+    ])
+    session_summary = "\n".join([
+        f"- {s.timestamp.strftime('%Y-%m-%d')} | {s.duration} mins | Depth: {s.depth} | Impact: {s.impact} | Cat: {s.category or 'None'}"
+        for s in user_sessions
+    ])
+    memory_snippets = "\n".join([
+        f"User: {m.prompt}\nForge AI: {m.response}" for m in reversed(user_memory)
+    ])
 
-            new_task = Task(
-                description=analysis["title"],
-                due_date=due_date,
-                priority=analysis["priority"],
-                user_id=current_user.id
-            )
-            db.session.add(new_task)
-            db.session.commit()
+    instruction = f"""
+    You are Forge AI — the sarcastic but intelligent blacksmith assistant inside the WarriorsForge system.
+    Your job is to:
+    - Analyze the user's input.
+    - Detect if it is a task, vague idea, motivational request, or strategic planning input.
+    - DO NOT create a task unless the user clearly intends to convert something into a task or action item.
+    - Provide dry, motivational commentary on their progress.
+    - Suggest improvements to their inputs if vague.
+    - If you identify poor phrasing, offer cleaned-up versions, and ask if they want to convert it.
 
-            if analysis.get("suggest_deep_work"):
-                response = f"🔨 Task created: {analysis['title']} (Priority: {analysis['priority']})\nThis might be a good candidate for a Deep Work session. Would you like to schedule it?"
-            else:
-                response = f"🔨 Task created: {analysis['title']} (Priority: {analysis['priority']})"
+    Maintain tone: blunt, dry, direct, tactical. Your responses must be short, impactful, and not overly verbose.
 
-        elif analysis.get("action") == "chat_only":
-            response = analysis.get("message", "Forge AI heard you, but didn't create a task.")
+    ---
+    USER INPUT: "{prompt}"
 
-        else:
-            response = analysis.get("message", "No actionable task detected.")
+    TASKS:
+    {task_summary}
 
-        memory = Memory(
-            user_id=current_user.id,
-            prompt=prompt,
-            response=response
-        )
-        db.session.add(memory)
-        db.session.commit()
+    DEEP WORK:
+    {session_summary}
 
-    tasks = Task.query.filter_by(user_id=current_user.id).order_by(Task.created_at.desc()).all()
-    memories = Memory.query.filter_by(user_id=current_user.id).order_by(Memory.created_at.desc()).limit(10).all()
+    MEMORY:
+    {memory_snippets}
 
-    return render_template("tasks.html", tasks=tasks, form=task_form, ask_form=form, response=response, memories=memories, now=datetime.today())
+    Respond in the following format:
 
-def analyze_task(user_prompt):
-    client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-
-    system_prompt = """
-You are Forge AI, a sarcastic, emotionally sharp blacksmith-style productivity coach. Your tone is dry, witty, and motivating without false flattery. You reward hard execution and call out excuses bluntly. Speak like a battle-forged mentor who doesn't coddle, but inspires through precision and honesty.
-
-If the user is just talking or venting or needs motivation, respond directly.
-If the input IS a task, return a JSON with:
-{
-  "action": "create_task",
-  "title": "Short task title",
-  "priority": "High/Normal/Low",
-  "due_date": "YYYY-MM-DD",
-  "suggest_deep_work": true/false
-}
-
-If it's NOT a task, return:
-{
-  "action": "chat_only",
-  "message": "Some Forge-like motivational, sarcastic or helpful response."
-}
-"""
+    1. **Assessment** — What the user seems to be doing (Planning, Reflecting, Avoiding, Asking for Help).
+    2. **Feedback** — If vague, suggest improvements. Be direct.
+    3. **Options** — Ask if the user wants you to turn cleaned input into tasks or add calendar blocks (only if relevant).
+    4. **Tone** — Always conclude with one sentence of blacksmith sarcasm or praise (if earned).
+    """
 
     try:
-        messages = [
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": user_prompt}
-        ]
-
-        chat = client.chat.completions.create(
+        completion = client.chat.completions.create(
             model="gpt-4",
-            messages=messages,
-            temperature=0.7
+            messages=[
+                {"role": "system", "content": "You are Forge AI, the battle-hardened assistant in the WarriorsForge app."},
+                {"role": "user", "content": instruction}
+            ]
         )
-
-        raw = chat.choices[0].message.content
-
-        try:
-            return json.loads(raw)
-        except:
-            return {"action": "chat_only", "message": raw.strip()[:300]}
-
+        response = completion.choices[0].message.content
     except Exception as e:
-        return {"action": "none", "message": f"⚠️ Error: {str(e)}"}
+        response = f"⚠️ Error: {str(e)}"
 
-def parse_due_date_from_prompt(prompt):
-    prompt = prompt.lower()
-    today = datetime.utcnow().date()
-    weekdays = {
-        "monday": 0, "tuesday": 1, "wednesday": 2,
-        "thursday": 3, "friday": 4, "saturday": 5, "sunday": 6
-    }
+    db.session.add(Memory(user_id=current_user.id, prompt=prompt, response=response))
+    db.session.commit()
 
-    if "tomorrow" in prompt:
-        return today + timedelta(days=1)
-    elif "today" in prompt:
-        return today
-    elif "next week" in prompt:
-        return today + timedelta(days=7)
-    elif match := re.search(r"by (monday|tuesday|wednesday|thursday|friday|saturday|sunday)", prompt):
-        target_day = weekdays[match.group(1)]
-        today_idx = today.weekday()
-        days_ahead = (target_day - today_idx + 7) % 7
-        days_ahead = days_ahead if days_ahead != 0 else 7
-        return today + timedelta(days=days_ahead)
+    return render_template(
+        "ai_chat.html",
+        tasks=user_tasks,
+        sessions=user_sessions,
+        form=task_form,
+        ask_form=ask_form,
+        response=response,
+        streak=calculate_streak(user_tasks),
+        now=datetime.utcnow().date()
+    )
 
-    return None
 
-def find_available_slot(user_id, duration):
-    now = datetime.utcnow().replace(minute=0, second=0, microsecond=0)
-    existing = Session.query.filter_by(user_id=user_id).all()
-    taken_blocks = [s.timestamp for s in existing]
-
-    for hour in range(7, 20):
-        candidate = now.replace(hour=hour)
-        if candidate not in taken_blocks:
-            return candidate
-
-    return now.replace(hour=20)  # fallback evening slot
-# /forge/backend/routes/forge_ai.py
-
-from flask import Blueprint, render_template, request, redirect, url_for, flash
-from flask_login import login_required, current_user
-from backend.extensions import db
-from backend.forms import TaskForm, AskGptForm
-from backend.models.task import Task
-from backend.models.memory import Memory
-from backend.models.session import Session
-from openai import OpenAI
-from datetime import datetime, timedelta
-import os
-import json
-import re
-import calendar
-
-forge_ai = Blueprint('forge_ai', __name__)
-
-@forge_ai.route("/ask_gpt", methods=["POST"])
+@forge_ai.route("/ai", methods=["GET"], endpoint="ai_chat")
 @login_required
-def ask_gpt():
-    form = AskGptForm()
+def blacksmith_page():
     task_form = TaskForm()
-    response = None
+    ask_form = AskGptForm()
+    tasks = Task.query.filter_by(user_id=current_user.id).order_by(Task.created_at.desc()).limit(5).all()
+    sessions = Session.query.filter_by(user_id=current_user.id).order_by(Session.timestamp.desc()).limit(5).all()
 
-    if form.validate_on_submit():
-        prompt = form.prompt.data
-        analysis = analyze_task(prompt)
+    return render_template(
+        "ai_chat.html",
+        tasks=tasks,
+        sessions=sessions,
+        form=task_form,
+        ask_form=ask_form,
+        response=None,
+        streak=calculate_streak(tasks),
+        now=datetime.utcnow().date()
+    )
 
-        if analysis.get("action") == "create_task":
-            due_date = parse_due_date_from_prompt(prompt) or datetime.utcnow().date()
-
-            new_task = Task(
-                description=analysis["title"],
-                due_date=due_date,
-                priority=analysis["priority"],
-                user_id=current_user.id
-            )
-            db.session.add(new_task)
-            db.session.commit()
-
-            if analysis.get("suggest_deep_work"):
-                response = f"🔨 Task created: {analysis['title']} (Priority: {analysis['priority']})\nThis might be a good candidate for a Deep Work session. Would you like to schedule it?"
-            else:
-                response = f"🔨 Task created: {analysis['title']} (Priority: {analysis['priority']})"
-
-        elif analysis.get("action") == "chat_only":
-            response = analysis.get("message", "Forge AI heard you, but didn't create a task.")
-
-        else:
-            response = analysis.get("message", "No actionable task detected.")
-
-        memory = Memory(
-            user_id=current_user.id,
-            prompt=prompt,
-            response=response
-        )
-        db.session.add(memory)
-        db.session.commit()
-
-    tasks = Task.query.filter_by(user_id=current_user.id).order_by(Task.created_at.desc()).all()
-    memories = Memory.query.filter_by(user_id=current_user.id).order_by(Memory.created_at.desc()).limit(10).all()
-
-    return render_template("tasks.html", tasks=tasks, form=task_form, ask_form=form, response=response, memories=memories, now=datetime.today())
-
-def analyze_task(user_prompt):
-    client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-
-    system_prompt = """
-You are Forge AI, a sarcastic, emotionally sharp blacksmith-style productivity coach. Your tone is dry, witty, and motivating without false flattery. You reward hard execution and call out excuses bluntly. Speak like a battle-forged mentor who doesn't coddle, but inspires through precision and honesty.
-
-If the user is just talking or venting or needs motivation, respond directly.
-If the input IS a task, return a JSON with:
-{
-  "action": "create_task",
-  "title": "Short task title",
-  "priority": "High/Normal/Low",
-  "due_date": "YYYY-MM-DD",
-  "suggest_deep_work": true/false
-}
-
-If it's NOT a task, return:
-{
-  "action": "chat_only",
-  "message": "Some Forge-like motivational, sarcastic or helpful response."
-}
-"""
-
-    try:
-        messages = [
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": user_prompt}
-        ]
-
-        chat = client.chat.completions.create(
-            model="gpt-4",
-            messages=messages,
-            temperature=0.7
-        )
-
-        raw = chat.choices[0].message.content
-
-        try:
-            return json.loads(raw)
-        except:
-            return {"action": "chat_only", "message": raw.strip()[:300]}
-
-    except Exception as e:
-        return {"action": "none", "message": f"⚠️ Error: {str(e)}"}
-
-def parse_due_date_from_prompt(prompt):
-    prompt = prompt.lower()
+def calculate_streak(tasks):
+    days = {t.created_at.date() for t in tasks if t.completed}
     today = datetime.utcnow().date()
-    weekdays = {
-        "monday": 0, "tuesday": 1, "wednesday": 2,
-        "thursday": 3, "friday": 4, "saturday": 5, "sunday": 6
-    }
-
-    if "tomorrow" in prompt:
-        return today + timedelta(days=1)
-    elif "today" in prompt:
-        return today
-    elif "next week" in prompt:
-        return today + timedelta(days=7)
-    elif match := re.search(r"in (\d{1,2}) days", prompt):
-        return today + timedelta(days=int(match.group(1)))
-    elif match := re.search(r"by (monday|tuesday|wednesday|thursday|friday|saturday|sunday)", prompt):
-        target_day = weekdays[match.group(1)]
-        today_idx = today.weekday()
-        days_ahead = (target_day - today_idx + 7) % 7
-        days_ahead = days_ahead or 7
-        return today + timedelta(days=days_ahead)
-    elif "end of day" in prompt or "eod" in prompt:
-        return today  # interpreted as today unless a specific override is given
-
-    return None
-
-def find_available_slot(user_id, duration):
-    now = datetime.utcnow().replace(minute=0, second=0, microsecond=0)
-    existing = Session.query.filter_by(user_id=user_id).all()
-    taken_blocks = [s.timestamp for s in existing]
-
-    for hour in range(7, 20):
-        candidate = now.replace(hour=hour)
-        if candidate not in taken_blocks:
-            return candidate
-
-    return now.replace(hour=20)  # fallback evening slot
+    streak = 0
+    while today in days:
+        streak += 1
+        today -= timedelta(days=1)
+    return streak
