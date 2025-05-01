@@ -1,6 +1,5 @@
 {# partials/task_list.html #}
 
-{# Separate active and completed tasks #}
 {% set active_tasks = tasks | selectattr("completed", "equalto", False) | list %}
 {% set completed_tasks = tasks | selectattr("completed", "equalto", True) | list %}
 
@@ -50,48 +49,58 @@
   {% endfor %}
 </ul>
 
-<h5 class="text-warning">Completed Tasks</h5>
-<ul id="completedTasksList" class="list-group mb-4">
-  {% for task in completed_tasks %}
-    <li id="task-{{ task.id }}" class="list-group-item d-flex justify-content-between align-items-center border-secondary">
-      <div class="d-flex align-items-center">
-        <input type="checkbox"
-               name="completed"
-               onchange="toggleTaskComplete({{ task.id }})"
-               class="form-check-input me-2"
-               {% if task.completed %}checked{% endif %}>
-        <span style="text-decoration: line-through; color: #666;">
-          {{ task.description }}
-          {% if task.due_date %}
-            <span class="badge bg-dark border text-light ms-2">
-              Due: {{ task.due_date.strftime('%b %d') }}
-            </span>
-          {% endif %}
-          {% if task.priority and task.priority != 'None' %}
-            <span class="badge bg-warning text-dark ms-1">
-              {{ task.priority }}
-            </span>
-          {% endif %}
-          {% if task.recurring and task.recurring != 'None' %}
-            <span class="badge bg-secondary text-light ms-1">
-              {{ task.recurring }}
-            </span>
-          {% endif %}
-        </span>
-      </div>
-      <div class="d-flex align-items-center">
-        <button class="btn btn-sm btn-outline-secondary me-1"
-                onclick="openEditModal({{ task.id }}, '{{ task.description }}', '{{ task.due_date.strftime('%Y-%m-%d') if task.due_date else '' }}', '{{ task.priority }}', '{{ task.recurring }}')">
-          <i class="bi bi-pencil"></i>
-        </button>
-        <button class="btn btn-sm btn-outline-danger" onclick="openDeleteModal({{ task.id }})">
-          <i class="bi bi-trash"></i>
-        </button>
-      </div>
-    </li>
-  {% else %}
-    <li class="list-group-item text-center text-muted border-secondary">
-      No completed tasks yet. Start somewhere.
-    </li>
-  {% endfor %}
-</ul>
+<!-- Collapse Toggle Button -->
+<button class="btn btn-sm btn-outline-secondary mb-3" type="button" 
+        data-bs-toggle="collapse" data-bs-target="#completedTasksCollapse"
+        aria-expanded="false" aria-controls="completedTasksCollapse">
+  Show Completed Tasks ({{ completed_tasks | length }})
+</button>
+
+<!-- Completed Tasks Collapse Section -->
+<div class="collapse" id="completedTasksCollapse">
+  <h5 class="text-warning mt-4">Completed Tasks</h5>
+  <ul id="completedTasksList" class="list-group mb-4">
+    {% for task in completed_tasks %}
+      <li id="task-{{ task.id }}" class="list-group-item d-flex justify-content-between align-items-center border-secondary">
+        <div class="d-flex align-items-center">
+          <input type="checkbox"
+                 name="completed"
+                 onchange="toggleTaskComplete({{ task.id }})"
+                 class="form-check-input me-2"
+                 {% if task.completed %}checked{% endif %}>
+          <span style="text-decoration: line-through; color: #666;">
+            {{ task.description }}
+            {% if task.due_date %}
+              <span class="badge bg-dark border text-light ms-2">
+                Due: {{ task.due_date.strftime('%b %d') }}
+              </span>
+            {% endif %}
+            {% if task.priority and task.priority != 'None' %}
+              <span class="badge {{ 'bg-warning text-dark' if task.priority != 'High' else 'bg-danger' }} ms-1">
+                {{ task.priority }}
+              </span>
+            {% endif %}
+            {% if task.recurring and task.recurring != 'None' %}
+              <span class="badge bg-secondary text-light ms-1">
+                {{ task.recurring }}
+              </span>
+            {% endif %}
+          </span>
+        </div>
+        <div class="d-flex align-items-center">
+          <button class="btn btn-sm btn-outline-secondary me-1"
+                  onclick="openEditModal({{ task.id }}, '{{ task.description }}', '{{ task.due_date.strftime('%Y-%m-%d') if task.due_date else '' }}', '{{ task.priority }}', '{{ task.recurring }}')">
+            <i class="bi bi-pencil"></i>
+          </button>
+          <button class="btn btn-sm btn-outline-danger" onclick="openDeleteModal({{ task.id }})">
+            <i class="bi bi-trash"></i>
+          </button>
+        </div>
+      </li>
+    {% else %}
+      <li class="list-group-item text-center text-muted border-secondary">
+        No completed tasks yet. The forge awaits.
+      </li>
+    {% endfor %}
+  </ul>
+</div>

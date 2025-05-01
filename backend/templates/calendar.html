@@ -1,35 +1,197 @@
-<!-- /forge/backend/templates/calendar.html -->
-
 {% extends "base.html" %}
+
 {% block content %}
-
 <h1 class="mb-4 text-warning">🛡️ War Table – Calendar View</h1>
-
 <div id="calendar" class="border p-3 rounded shadow-sm"></div>
 
-<!-- FullCalendar.io -->
+<!-- Calendar Edit Modal -->
+<div class="modal fade" id="calendarModal" tabindex="-1" aria-labelledby="calendarModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content bg-dark text-light border-warning">
+      <div class="modal-header">
+        <h5 class="modal-title" id="calendarModalLabel">Edit Event</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form id="calendarModalForm">
+        <div class="modal-body">
+          <input type="hidden" id="modalEventId">
+          <div class="mb-3">
+            <label class="form-label">Title</label>
+            <input type="text" id="modalEventTitle" class="form-control" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Description</label>
+            <textarea id="modalEventDescription" class="form-control" rows="3"></textarea>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Start</label>
+            <input type="datetime-local" id="modalEventStart" class="form-control" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">End</label>
+            <input type="datetime-local" id="modalEventEnd" class="form-control">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" id="deleteEventBtn" class="btn btn-danger">Delete</button>
+          <button type="submit" class="btn btn-warning">Save Changes</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
 <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    const calendarEl = document.getElementById('calendar');
-    const calendar = new FullCalendar.Calendar(calendarEl, {
-        initialView: 'dayGridMonth',
-        headerToolbar: {
-          left: 'prev,next today',
-          center: 'title',
-          right: 'dayGridMonth,timeGridWeek,listWeek'
-        },
-        events: '/calendar/events',
-        eventClick: function(info) {
-          alert('Event: ' + info.event.title);
-        },
-        height: 'auto',
-        themeSystem: 'bootstrap5'
+  const calendarEl = document.getElementById('calendar');
+  const csrfToken = document.getElementById('global-csrf-token').value;
+  let currentEvent = null;
+
+  const calendar = new FullCalendar.Calendar(calendarEl, {
+    initialView: 'dayGridMonth',
+    headerToolbar: {
+      left: 'prev,next today',
+      center: 'title',
+      right: 'dayGridMonth,timeGridWeek,listWeek'
+    },
+    themeSystem: 'bootstrap5',
+    events: '/calendar/events',
+    selectable: true,
+    editable: true,
+    height: 'auto',
+    slotDuration: '00:15:00',
+    snapDuration: '00:15:00',
+
+    eventDidMount: function(info) {
+      if (info.event.extendedProps.priority) {
+        if (info.event.extendedProps.priority === 'High') {
+          info.el.style.backgroundColor = 'rgba(176, 42, 55, 0.5)';
+        } else if (info.event.extendedProps.priority === 'Normal') {
+          info.el.style.backgroundColor = 'rgba(217, 164, 6, 0.5)';
+        } else {
+          info.el.style.backgroundColor = 'rgba(90, 98, 104, 0.5)';
+        }
+      }
+    },
+
+    select: function(info) {
+      const title = prompt('Enter event title:');
+      if (title) {
+        fetch('/calendar/events', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrfToken
+          },
+          body: JSON.stringify({
+            title: title,
+            start: info.startStr,
+            end: info.endStr
+          })
+        }).then(response => {
+          if (response.ok) {
+            calendar.refetchEvents();
+          } else {
+            alert('Failed to create event.');
+          }
+        });
+      }
+      calendar.unselect();
+    },
+
+    eventClick: function(info) {
+      openEditModal(info.event);
+    },
+
+    eventDrop: function(info) {
+      updateEventTimes(info.event);
+    },
+
+    eventResize: function(info) {
+      updateEventTimes(info.event);
+    }
+  });
+
+  calendar.render();
+
+  function openEditModal(event) {
+    currentEvent = event;
+    document.getElementById('modalEventId').value = event.extendedProps.id || event.id;
+    document.getElementById('modalEventTitle').value = event.title;
+    document.getElementById('modalEventDescription').value = event.extendedProps.description || '';
+    document.getElementById('modalEventStart').value = event.start.toISOString().slice(0,16);
+    document.getElementById('modalEventEnd').value = event.end ? event.end.toISOString().slice(0,16) : '';
+
+    new bootstrap.Modal(document.getElementById('calendarModal')).show();
+  }
+
+  async function updateEventTimes(event) {
+    const id = event.extendedProps.id || event.id;
+    const start = event.start.toISOString();
+    const end = event.end ? event.end.toISOString() : null;
+
+    const res = await fetch(`/calendar/events/${id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': csrfToken
+      },
+      body: JSON.stringify({ start: start, end: end })
     });
-    calendar.render();
+
+    if (res.ok) {
+      calendar.refetchEvents();
+    } else {
+      alert('Failed to update event times.');
+    }
+  }
+
+  document.getElementById('calendarModalForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (!currentEvent) return;
+
+    const id = document.getElementById('modalEventId').value || event.id;
+    const title = document.getElementById('modalEventTitle').value;
+    const description = document.getElementById('modalEventDescription').value;
+    const start = document.getElementById('modalEventStart').value;
+    const end = document.getElementById('modalEventEnd').value;
+
+    const res = await fetch(`/calendar/events/${id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': csrfToken
+      },
+      body: JSON.stringify({ title, description, start, end })
+    });
+
+    if (res.ok) {
+      calendar.refetchEvents();
+      bootstrap.Modal.getInstance(document.getElementById('calendarModal')).hide();
+    } else {
+      alert('Failed to update event.');
+    }
+  });
+
+  document.getElementById('deleteEventBtn').addEventListener('click', async () => {
+    if (!currentEvent) return;
+    const id = document.getElementById('modalEventId').value;
+
+    const res = await fetch(`/calendar/events/${id}`, {
+      method: 'DELETE',
+      headers: { 'X-CSRFToken': csrfToken }
+    });
+
+    if (res.ok) {
+      calendar.refetchEvents();
+      bootstrap.Modal.getInstance(document.getElementById('calendarModal')).hide();
+    } else {
+      alert('Failed to delete event.');
+    }
+  });
 });
 </script>
-
 {% endblock %}

@@ -125,3 +125,27 @@ def calculate_streak(tasks):
         streak += 1
         today -= timedelta(days=1)
     return streak
+
+def estimate_task_time(description):
+    from openai import OpenAI
+    import os
+    
+    client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+    
+    prompt = f"""
+You are a highly efficient productivity expert.
+Estimate the time (in minutes) it would take a skilled human to complete the following task:
+"{description}"
+Reply only with a single integer number.
+"""
+
+    try:
+        response = client.chat.completions.create(
+            model="gpt-4",
+            messages=[{"role": "user", "content": prompt}]
+        )
+        minutes = int(response.choices[0].message.content.strip())
+        return minutes
+    except Exception as e:
+        print(f"Failed to estimate task time: {e}")
+        return None

@@ -28,15 +28,34 @@ def view_tasks():
 
     if form.validate_on_submit():
         new_task = Task(
-            description=form.task.data,
+            user_id=current_user.id,
+            description=form.description.data,
             due_date=form.due_date.data,
             priority=form.priority.data,
             recurring=form.recurring.data,
-            user_id=current_user.id
         )
+
+        # Pass through Forge AI to estimate time if needed
+        from backend.routes.forge_ai import estimate_task_time
+        estimated_minutes = estimate_task_time(new_task.description)
+        new_task.estimated_time = estimated_minutes or 30  # default to 30min if fail
+
         db.session.add(new_task)
         db.session.commit()
-        flash('Task added.', 'success')
+
+        # (Optional) push to Calendar if due_date is set
+        if new_task.due_date:
+            event = CalendarEvent(
+                user_id=current_user.id,
+                title=new_task.description,
+                start=new_task.due_date,
+                end=new_task.due_date,
+                event_type='Task'
+            )
+            db.session.add(event)
+            db.session.commit()
+
+        flash('Task added successfully!', 'success')
         return redirect(url_for('tasks.view_tasks'))
 
     all_tasks = Task.query.filter_by(user_id=current_user.id).order_by(Task.created_at.desc()).all()

@@ -117,10 +117,16 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script>
   const forgeBrand = document.getElementById('forge-brand');
+  const forgeOrbButton = document.getElementById('forge-orb');
+  const floatForm = document.getElementById('forge-float-form');
+  const floatInput = document.getElementById('float-input');
+  const floatResp = document.getElementById('float-response');
+  const csrfToken = document.getElementById('global-csrf-token').value;
+
   let emberTimeout;
 
-  // Cursor smoke trail
-  forgeBrand.addEventListener('mouseenter', () => {
+  // Smoke Trails
+  forgeBrand.addEventListener('mouseenter', (event) => {
     const start = Date.now();
     const duration = 3000;
     const interval = setInterval(() => {
@@ -135,7 +141,6 @@
     }, 100);
   });
 
-  // Long-press effect with orange cursor
   forgeBrand.addEventListener('mousedown', (e) => {
     emberTimeout = setTimeout(() => {
       document.body.style.cursor = 'pointer';
@@ -160,6 +165,48 @@
     clearTimeout(emberTimeout);
     document.body.style.cursor = '';
   });
+
+  // Open/Close the floating Forge AI modal
+  forgeOrbButton.addEventListener("click", () => {
+    const modalContainer = document.getElementById('forge-modal-container');
+    modalContainer.style.display = (modalContainer.style.display === 'block') ? 'none' : 'block';
+    if (modalContainer.style.display === 'block') {
+      floatInput.focus();
+    }
+  });
+
+  document.getElementById('close-forge-modal').addEventListener('click', () => {
+    document.getElementById('forge-modal-container').style.display = 'none';
+  });
+
+  // Handle Forge AI Form Submission
+  floatForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const prompt = floatInput.value.trim();
+    if (!prompt) return;
+
+    floatResp.innerHTML = "🛠️ The Blacksmith is forging your answer...";
+
+    try {
+      const response = await fetch("/ask_gpt", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": csrfToken,
+        },
+        body: JSON.stringify({ prompt: prompt }),
+      });
+
+      if (!response.ok) throw new Error("Forge AI encountered a rupture.");
+
+      const data = await response.text();
+      floatResp.innerHTML = data;
+    } catch (error) {
+      floatResp.innerHTML = "⚡ The Forge trembled. Try again.";
+      console.error(error);
+    }
+  });
+
 
   const themeToggle = document.getElementById("theme-toggle");
   const themeStyle = document.getElementById("theme-style");

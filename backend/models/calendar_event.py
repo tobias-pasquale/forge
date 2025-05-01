@@ -1,6 +1,5 @@
 from backend.extensions import db
 from datetime import datetime
-from flask_login import UserMixin
 
 class CalendarEvent(db.Model):
     __tablename__ = 'calendar_events'
@@ -12,8 +11,9 @@ class CalendarEvent(db.Model):
     description = db.Column(db.Text)
 
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    
+
     def __repr__(self):
-        return f'<CalendarEvent {self.title} {self.start_time}>'
+        return f'<CalendarEvent {self.title} ({self.start_time} - {self.end_time})>'
