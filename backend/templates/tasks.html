@@ -6,7 +6,7 @@
 <!-- Statistics Panel -->
 <div class="row g-3 mb-4">
   <div class="col-md-3">
-    <div class="card text-center   border border-secondary">
+    <div class="card text-center border border-secondary">
       <div class="card-body">
         <h6>Total Tasks</h6>
         <h3>{{ tasks|length }}</h3>
@@ -14,7 +14,7 @@
     </div>
   </div>
   <div class="col-md-3">
-    <div class="card text-center   border border-secondary">
+    <div class="card text-center border border-secondary">
       <div class="card-body">
         <h6>Completed</h6>
         <h3>{{ completed_tasks|length }}</h3>
@@ -22,7 +22,7 @@
     </div>
   </div>
   <div class="col-md-3">
-    <div class="card text-center   border border-secondary">
+    <div class="card text-center border border-secondary">
       <div class="card-body">
         <h6>Streak</h6>
         <h3>{{ streak }}</h3>
@@ -30,10 +30,10 @@
     </div>
   </div>
   <div class="col-md-3">
-    <div class="card text-center   border border-secondary">
+    <div class="card text-center border border-secondary">
       <div class="card-body">
         <h6>Today's Tasks</h6>
-        <h3>{{ tasks|selectattr("due_date", "equalto", now.date())|list|length }}</h3>
+        <h3>{{ tasks|selectattr("start_datetime", "equalto", now.date())|list|length }}</h3>
       </div>
     </div>
   </div>
@@ -44,13 +44,13 @@
   <div class="col-12 col-lg-8">
     <form method="POST" class="mb-4 row gx-3 gy-2">
       {{ form.hidden_tag() }}
-      <div class="col-md-5">
-        {{ form.task.label(class="form-label") }}
-        {{ form.task(class="form-control", placeholder="Add a new task...") }}
+      <div class="col-md-4">
+        {{ form.description.label(class="form-label") }}
+        {{ form.description(class="form-control", placeholder="Describe the task...") }}
       </div>
       <div class="col-md-2">
-        {{ form.due_date.label(class="form-label") }}
-        {{ form.due_date(class="form-control") }}
+        {{ form.end_datetime.label(class="form-label") }}
+        {{ form.end_datetime(class="form-control") }}
       </div>
       <div class="col-md-2">
         {{ form.priority.label(class="form-label") }}
@@ -70,13 +70,13 @@
 
   <!-- Right: Calendar -->
   <div class="col-lg-4">
-    <div class="card   border border-secondary">
-      <div class="card-header text-warning">📆 Today's Calendar</div>
+    <div class="card border border-secondary">
+      <div class="card-header  forge-text-warning">📆 Today's Calendar</div>
       <div class="card-body small">
         {% if calendar_events %}
           <ul class="list-group list-group-flush">
             {% for event in calendar_events %}
-              <li class="list-group-item   border-secondary">
+              <li class="list-group-item border-secondary">
                 <strong>{{ event.title }}</strong><br>
                 <small>{{ event.start_time.strftime('%I:%M %p') }} - {{ event.end_time.strftime('%I:%M %p') }}</small>
               </li>
@@ -93,10 +93,10 @@
 <!-- Edit Task Modal -->
 <div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-lg">
-    <div class="modal-content   border border-secondary">
+    <div class="modal-content border border-secondary">
       <form method="POST" id="editModalForm">
         <div class="modal-header">
-          <h5 class="modal-title text-warning" id="editModalLabel">Edit Task</h5>
+          <h5 class="modal-title  forge-text-warning" id="editModalLabel">Edit Task</h5>
           <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body row g-3">
@@ -106,8 +106,12 @@
             <input type="text" name="edited_task" class="form-control" id="modalTaskInput">
           </div>
           <div class="col-md-6">
-            <label class="form-label">Due Date</label>
-            <input type="date" name="edited_due_date" class="form-control" id="modalDueDate">
+            <label class="form-label">Start</label>
+            <input type="datetime-local" name="edited_start_datetime" class="form-control" id="modalStartDatetime">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">End</label>
+            <input type="datetime-local" name="edited_end_datetime" class="form-control" id="modalEndDatetime">
           </div>
           <div class="col-md-6">
             <label class="form-label">Priority</label>
@@ -137,9 +141,9 @@
 <!-- Delete Confirmation Modal -->
 <div class="modal fade" id="confirmDeleteModal" tabindex="-1" aria-labelledby="confirmDeleteLabel" aria-hidden="true">
   <div class="modal-dialog">
-    <div class="modal-content   border border-secondary">
+    <div class="modal-content border border-secondary">
       <div class="modal-header">
-        <h5 class="modal-title text-warning" id="confirmDeleteLabel">Confirm Deletion</h5>
+        <h5 class="modal-title  forge-text-warning" id="confirmDeleteLabel">Confirm Deletion</h5>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
@@ -186,11 +190,12 @@ function toggleTaskComplete(taskId) {
   .catch(error => console.error('Error:', error));
 }
 
-function openEditModal(id, text, date, priority, recurring) {
+function openEditModal(id, text, startDatetime, endDatetime, priority, recurring) {
   const form = document.getElementById('editModalForm');
   form.action = `/edit_task/${id}`;
   document.getElementById('modalTaskInput').value = text;
-  document.getElementById('modalDueDate').value = date || '';
+  document.getElementById('modalStartDatetime').value = startDatetime || '';
+  document.getElementById('modalEndDatetime').value = endDatetime || '';
   document.getElementById('modalPriority').value = priority || 'None';
   document.getElementById('modalRecurring').value = recurring || 'None';
   new bootstrap.Modal(document.getElementById('editModal')).show();

@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block content %}
 
-<h1 class="mb-4 text-warning">🧠 Focus Log</h1>
+<h1 class="mb-4  forge-text-warning">🧠 Focus Log</h1>
 
 <!-- Dashboard Cards -->
 <div class="row g-4 mb-5">
@@ -33,7 +33,7 @@
 
 <!-- Logging Form -->
 <div class="card p-4 mb-5 border border-secondary">
-  <h4 class="mb-3 text-warning">🔥 Log Deep Work Session</h4>
+  <h4 class="mb-3  forge-text-warning">🔥 Log Deep Work Session</h4>
   <form method="POST">
     {{ form.hidden_tag() }}
     <div class="row g-3">
@@ -66,7 +66,7 @@
 
 <!-- Session History -->
 <div class="card p-4 border border-secondary">
-  <h4 class="mb-3">📜 Logged Sessions</h4>
+  <h4 class="mb-3 forge-text-warning">📜 Logged Sessions</h4>
   {% if sessions %}
     <ul class="list-group list-group-flush">
       {% for s in sessions %}

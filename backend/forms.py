@@ -1,7 +1,7 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, TextAreaField, IntegerField, FloatField, SubmitField, PasswordField, SelectField, DateField
+from wtforms import StringField, TextAreaField, IntegerField, FloatField, SubmitField, PasswordField, SelectField, DateField, DateTimeField
 from wtforms.validators import DataRequired, NumberRange, Email, EqualTo
-from datetime import date
+from datetime import date, datetime
 
 class SessionForm(FlaskForm):
     duration = FloatField('Duration (hrs)', validators=[DataRequired()])
@@ -28,7 +28,8 @@ class LoginForm(FlaskForm):
 
 class TaskForm(FlaskForm):
     task = StringField("Task", validators=[DataRequired()])
-    due_date = DateField("Due Date", default=date.today)
+    description = TextAreaField("Description")
+    end_datetime = DateTimeField("Due Date/Time", default=datetime.utcnow)  # Notice: DateTimeField
     priority = SelectField("Priority", choices=[("None", "None"), ("Normal", "Normal"), ("High", "High")], default="Normal")
     recurring = SelectField('Recurring', choices=[
         ('None', 'None'),

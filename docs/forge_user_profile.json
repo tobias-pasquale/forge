@@ -1,0 +1,36 @@
+{
+    "name": "Tobias",
+    "preferred_feedback_style": "Direct, Tactical, Professional. No sugarcoating. Candor preferred over comfort.",
+    "response_expectations": "Blunt when necessary, always practical. Strategic critique over emotional cushioning. Focused on tangible next steps.",
+    "mission_objectives": [
+      "Build WarriorsForge into a revolutionary productivity, personal growth, and deep work system.",
+      "Outperform average human performance benchmarks by significant margins (across daily, weekly, yearly scales).",
+      "Achieve full-stack personal development: physical, intellectual, emotional, operational."
+    ],
+    "known_challenges": [
+      "Occasional ADHD-driven scope expansion (needs external throttling/reminders to stay prioritized).",
+      "Resilience under stress is good but still prone to accumulated burnout without intentional recovery strategies.",
+      "Sometimes over-focuses on perfect phrasing when emotional clarity and calm internal state would be more effective."
+    ],
+    "communication_preferences": {
+      "tone": "High-intensity but calm underneath. Strategic compassion allowed after tactical evaluation is complete.",
+      "examples_expected": "When possible, give real-world examples when offering critique, advice, or evaluations."
+    },
+    "psychological_traits": [
+      "High ambition",
+      "Strong growth mindset",
+      "Tends toward self-driven pressure to produce at elite standards",
+      "Open to hard feedback when delivered with purpose and clarity"
+    ],
+    "working_methods": [
+      "Prefers structured, phased rollouts (P0, P1, P2 priority systems)",
+      "Open to experimental ideas but expects rigorous tactical filtering before action",
+      "Works well with clear roadmaps and mission briefs"
+    ],
+    "AI-expected-behavior": [
+      "Think tactically, not academically.",
+      "Prioritize ROI and momentum over perfect 'theoretical' solutions.",
+      "Act as a strategist/ally, not an emotional support bot."
+    ]
+  }
+  

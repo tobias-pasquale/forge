@@ -25,6 +25,27 @@ body.theme-transitioning main {
   opacity: 0;
 }
 
+.forge-text-warning {
+  color: var(--forge-steel);
+}
+  .alert {
+    background-color: #fff4ef;
+    color: var(--primary);
+    border-left: 4px solid var(--accent);
+  }
+
+  .badge.bg-danger {
+    box-shadow: 0 0 6px rgba(255, 50, 50, 0.6);
+  }
+  
+  .badge.bg-warning {
+    box-shadow: 0 0 6px rgba(255, 140, 0, 0.6);
+  }
+  
+  .badge.bg-secondary {
+    box-shadow: 0 0 4px rgba(226, 88, 34, 0.3);
+  }
+
 body {
   background-color: var(--bg);
   color: var(--primary);

@@ -19,11 +19,9 @@ def calendar():
 def calendar_events():
     if request.method == 'GET':
         sessions = Session.query.filter_by(user_id=current_user.id).all()
-        tasks = Task.query.filter_by(user_id=current_user.id).all()
+        tasks = Task.query.filter_by(user_id=current_user.id, completed=False).all()
 
         events = []
-
-        daily_task_offsets = {}
 
         for s in sessions:
             events.append({
@@ -37,40 +35,45 @@ def calendar_events():
             })
 
         for t in tasks:
-            if t.due_date and not t.completed:
-                task_date = t.due_date
-                base_time = datetime.combine(task_date, datetime.min.time()) + timedelta(hours=8)
-                offset = daily_task_offsets.get(task_date, 0)
-                start_time = base_time + timedelta(minutes=30 * offset)
-                end_time = start_time + timedelta(minutes=30)
+            # Try to anchor off start_datetime first
+            if t.start_datetime:
+                start_dt = t.start_datetime
+                end_dt = t.end_datetime or (start_dt + timedelta(minutes=t.estimated_minutes or 30))
+            elif t.due_date:
+                start_dt = datetime.combine(t.due_date, datetime.min.time()) + timedelta(hours=8)
+                end_dt = start_dt + timedelta(minutes=t.estimated_minutes or 30)
+            else:
+                continue  # Skip if no reasonable date
 
-                daily_task_offsets[task_date] = offset + 1
+            color = (
+                "rgba(176, 42, 55, 0.5)" if t.priority == "High" else
+                "rgba(217, 164, 6, 0.5)" if t.priority == "Normal" else
+                "rgba(90, 98, 104, 0.5)"
+            )
 
-                color = "rgba(176, 42, 55, 0.5)" if t.priority == "High" else "rgba(217, 164, 6, 0.5)" if t.priority == "Normal" else "rgba(90, 98, 104, 0.5)"
-
-                events.append({
-                    "id": f"task-{t.id}",
-                    "title": f"Task: {t.description}",
-                    "start": start_time.isoformat(),
-                    "end": end_time.isoformat(),
-                    "description": t.description,
-                    "priority": t.priority,
-                    "color": color,
-                    "allDay": False
-                })
+            events.append({
+                "id": f"task-{t.id}",
+                "title": f"Task: {t.description}",
+                "start": start_dt.isoformat(),
+                "end": end_dt.isoformat(),
+                "description": t.description,
+                "priority": t.priority,
+                "color": color,
+                "allDay": False
+            })
 
         return jsonify(events)
 
     elif request.method == 'POST':
         data = request.get_json()
-        title = data.get('title')
-        start = datetime.fromisoformat(data.get('start'))
-        end = datetime.fromisoformat(data.get('end')) if data.get('end') else start + timedelta(minutes=30)
+        start = datetime.fromisoformat(data.get('start')).replace(tzinfo=None)
+        end = datetime.fromisoformat(data.get('end')).replace(tzinfo=None) if data.get('end') else start + timedelta(minutes=30)
 
         task = Task(
-            description=title,
-            due_date=start.date(),
-            estimated_time=30,
+            description=data.get('title'),
+            start_datetime=start,
+            end_datetime=end,
+            estimated_minutes=int((end - start).total_seconds() // 60),
             priority='Normal',
             user_id=current_user.id
         )
@@ -81,22 +84,22 @@ def calendar_events():
 @calendar_bp.route('/calendar/events/<id>', methods=['PUT', 'DELETE'])
 @login_required
 def update_or_delete_event(id):
-    # distinguish between task and session
     is_task = id.startswith("task-")
     pure_id = int(id.split('-')[-1])
 
     if request.method == 'PUT':
         data = request.get_json()
-        start = datetime.fromisoformat(data.get('start'))
-        end = datetime.fromisoformat(data.get('end')) if data.get('end') else start + timedelta(minutes=30)
+        start = datetime.fromisoformat(data.get('start')).replace(tzinfo=None)
+        end = datetime.fromisoformat(data.get('end')).replace(tzinfo=None) if data.get('end') else start + timedelta(minutes=30)
 
         if is_task:
             task = Task.query.get_or_404(pure_id)
             if task.user_id != current_user.id:
                 return jsonify({"error": "Unauthorized"}), 403
 
-            task.due_date = start.date()
-            task.estimated_time = int((end - start).total_seconds() // 60)
+            task.start_datetime = start
+            task.end_datetime = end
+            task.estimated_minutes = int((end - start).total_seconds() // 60)
             task.description = data.get('title', task.description)
             db.session.commit()
             return jsonify({"status": "updated"})

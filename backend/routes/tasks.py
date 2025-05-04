@@ -5,8 +5,9 @@ from flask_login import login_required, current_user
 from backend.extensions import db
 from backend.models.task import Task
 from backend.models.calendar_event import CalendarEvent
-from datetime import datetime, timedelta, date
+from datetime import datetime, timedelta
 from backend.forms import TaskForm
+
 
 tasks = Blueprint('tasks', __name__)
 
@@ -18,38 +19,38 @@ def view_tasks():
     completed = [t for t in all_tasks if t.completed]
     streak = len([t for t in completed if t.completed_at and t.completed_at.date() == datetime.utcnow().date()])
 
-    # Pull today's calendar events
     today = datetime.utcnow().date()
     events = CalendarEvent.query.filter_by(user_id=current_user.id).filter(
         CalendarEvent.start_time >= datetime.combine(today, datetime.min.time()),
         CalendarEvent.start_time <= datetime.combine(today, datetime.max.time())
     ).order_by(CalendarEvent.start_time.asc()).all()
 
-
     if form.validate_on_submit():
         new_task = Task(
             user_id=current_user.id,
             description=form.description.data,
-            due_date=form.due_date.data,
+            start_datetime=form.start_datetime.data,
+            end_datetime=form.end_datetime.data,
             priority=form.priority.data,
             recurring=form.recurring.data,
+            category=form.category.data,
+            difficulty=form.difficulty.data,
+            estimated_minutes=form.estimated_minutes.data,
         )
 
-        # Pass through Forge AI to estimate time if needed
         from backend.routes.forge_ai import estimate_task_time
         estimated_minutes = estimate_task_time(new_task.description)
-        new_task.estimated_time = estimated_minutes or 30  # default to 30min if fail
+        new_task.estimated_minutes = estimated_minutes or 30
 
         db.session.add(new_task)
         db.session.commit()
 
-        # (Optional) push to Calendar if due_date is set
-        if new_task.due_date:
+        if new_task.start_datetime:
             event = CalendarEvent(
                 user_id=current_user.id,
                 title=new_task.description,
-                start=new_task.due_date,
-                end=new_task.due_date,
+                start_time=new_task.start_datetime,
+                end_time=new_task.end_datetime or (new_task.start_datetime + timedelta(minutes=new_task.estimated_minutes or 30)),
                 event_type='Task'
             )
             db.session.add(event)
@@ -59,7 +60,18 @@ def view_tasks():
         return redirect(url_for('tasks.view_tasks'))
 
     all_tasks = Task.query.filter_by(user_id=current_user.id).order_by(Task.created_at.desc()).all()
-    return render_template('tasks.html', tasks=all_tasks, form=form, completed_tasks=completed, streak=streak, calendar_events=events, now=datetime.utcnow())
+    now = datetime.utcnow()
+    tomorrow = now + timedelta(days=1)
+    return render_template(
+        'tasks.html',
+        tasks=all_tasks,
+        form=form,
+        completed_tasks=completed,
+        streak=streak,
+        calendar_events=events,
+        now=now,
+        tomorrow=tomorrow
+    )
 
 @tasks.route('/add', methods=['POST'])
 @login_required
@@ -92,18 +104,21 @@ def edit_task(task_id):
         return redirect(url_for('tasks.view_tasks'))
 
     task_desc = request.form.get("edited_task")
-    due_date = request.form.get("edited_due_date")
+    start_datetime = request.form.get("edited_start_datetime")
+    end_datetime = request.form.get("edited_end_datetime")
     priority = request.form.get("edited_priority")
     recurring = request.form.get("edited_recurring")
 
     if task_desc:
         task.description = task_desc
-
-    if due_date:
-        task.due_date = datetime.strptime(due_date, '%Y-%m-%d').date()
-
-    task.priority = priority
-    task.recurring = recurring
+    if start_datetime:
+        task.start_datetime = datetime.fromisoformat(start_datetime)
+    if end_datetime:
+        task.end_datetime = datetime.fromisoformat(end_datetime)
+    if priority:
+        task.priority = priority
+    if recurring:
+        task.recurring = recurring
 
     db.session.commit()
     flash("Task updated.", "success")
@@ -135,21 +150,13 @@ def toggle_task(task_id):
 
     new_task = None
     if task.completed and task.recurring and task.recurring != 'None':
-        # Calculate new due date based on recurrence type
-        if task.due_date:
-            if task.recurring == 'Daily':
-                new_due_date = task.due_date + timedelta(days=1)
-            elif task.recurring == 'Weekly':
-                new_due_date = task.due_date + timedelta(weeks=1)
-            else:
-                new_due_date = None
-        else:
-            new_due_date = datetime.utcnow().date() + timedelta(days=1)
+        new_start = (task.start_datetime or datetime.utcnow()) + timedelta(days=1)
+        new_end = (task.end_datetime or (task.start_datetime + timedelta(minutes=task.estimated_minutes or 30))) + timedelta(days=1)
 
-        # Clone task (but not completed)
         new_task = Task(
             description=task.description,
-            due_date=new_due_date,
+            start_datetime=new_start,
+            end_datetime=new_end,
             priority=task.priority,
             recurring=task.recurring,
             user_id=task.user_id,

@@ -46,13 +46,53 @@ with app.app_context():
 
     print("\n👤 Admin user created: Tobias (tobiaspasquale@gmail.com)")
 
+    now = datetime.utcnow()
+
     # Seed example tasks
     sample_tasks = [
-        Task(user_id=admin.id, description="Finish WarriorsForge MVP Plan", due_date=datetime.utcnow() + timedelta(days=1), priority="High"),
-        Task(user_id=admin.id, description="30 min Deep Work on Forge Calendar", due_date=datetime.utcnow(), priority="Normal", recurring="Daily"),
-        Task(user_id=admin.id, description="Read 1 Chapter of 'Tax-Free Wealth'", due_date=datetime.utcnow() + timedelta(days=2), priority="Normal"),
-        Task(user_id=admin.id, description="Summarize Daily Victory, Mistake, Adjustment", due_date=datetime.utcnow(), recurring="Daily"),
-    ]
+    Task(
+        user_id=admin.id,
+        description="Finish WarriorsForge MVP Plan",
+        start_datetime=now.replace(hour=9, minute=0, second=0, microsecond=0),
+        end_datetime=(now + timedelta(days=1)).replace(hour=11, minute=0, second=0, microsecond=0),
+        estimated_minutes=120,
+        priority="High",
+        category="Work",
+        difficulty="Hard",
+    ),
+    Task(
+        user_id=admin.id,
+        description="30 min Deep Work on Forge Calendar",
+        start_datetime=now.replace(hour=14, minute=0, second=0, microsecond=0),
+        end_datetime=now.replace(hour=14, minute=30, second=0, microsecond=0),
+        estimated_minutes=30,
+        priority="Normal",
+        recurring="Daily",
+        category="Work",
+        difficulty="Normal",
+    ),
+    Task(
+        user_id=admin.id,
+        description="Read 1 Chapter of 'Tax-Free Wealth'",
+        start_datetime=(now + timedelta(days=1)).replace(hour=19, minute=0, second=0, microsecond=0),
+        end_datetime=(now + timedelta(days=1)).replace(hour=20, minute=0, second=0, microsecond=0),
+        estimated_minutes=60,
+        priority="Normal",
+        category="Study",
+        difficulty="Easy",
+    ),
+    Task(
+        user_id=admin.id,
+        description="Summarize Daily Victory, Mistake, Adjustment",
+        start_datetime=now.replace(hour=20, minute=30, second=0, microsecond=0),
+        end_datetime=now.replace(hour=21, minute=0, second=0, microsecond=0),
+        estimated_minutes=30,
+        recurring="Daily",
+        category="Reflection",
+        difficulty="Easy",
+    ),
+]
+
     db.session.add_all(sample_tasks)
     db.session.commit()
 
