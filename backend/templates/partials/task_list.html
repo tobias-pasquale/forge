@@ -9,6 +9,7 @@
     <li id="task-{{ task.id }}" class="list-group-item d-flex justify-content-between align-items-center border-secondary">
       <div class="d-flex align-items-center">
         <input type="checkbox"
+               id="checkbox-{{ task.id }}" 
                name="completed"
                onchange="toggleTaskComplete({{ task.id }})"
                class="form-check-input me-2"
@@ -25,7 +26,7 @@
                 {% set task_date = task.end_datetime.date() %}
                 {% if task_date == now.date() %}
                 Due Today: {{ task_date.strftime('%-m/%-d') }}
-                {% elif task_date == tomorrow.date() %}
+                {% elif task_date == tomorrow %}
                 Due Tomorrow: {{ task_date.strftime('%-m/%-d') }}
                 {% elif task_date < now.date() %}
                 Overdue: {{ task_date.strftime('%-m/%-d') }}
@@ -98,6 +99,7 @@
       <li id="task-{{ task.id }}" class="list-group-item d-flex justify-content-between align-items-center border-secondary">
         <div class="d-flex align-items-center">
           <input type="checkbox"
+                 id="checkbox-{{ task.id }}" 
                  name="completed"
                  onchange="toggleTaskComplete({{ task.id }})"
                  class="form-check-input me-2"
