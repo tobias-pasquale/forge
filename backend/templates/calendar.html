@@ -150,15 +150,21 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('modalEventId').value = event.id;
     document.getElementById('modalEventTitle').value = event.title;
     document.getElementById('modalEventDescription').value = event.extendedProps.description || '';
-    document.getElementById('modalEventStart').value = event.start.toISOString().slice(0, 16);
-    document.getElementById('modalEventEnd').value = event.end ? event.end.toISOString().slice(0, 16) : '';
+    document.getElementById('modalEventStart').value = toLocalISOString(event.start);
+    document.getElementById('modalEventEnd').value = event.end ? toLocalISOString(event.end) : '';
     new bootstrap.Modal(document.getElementById('calendarModal')).show();
   }
 
+  function toLocalISOString(date) {
+  const local = new Date(date.getTime() - (date.getTimezoneOffset() * 60000));
+  return local.toISOString().slice(0, 19);
+}
+
+
   async function updateEventTimes(event) {
     const id = event.id;
-    const start = event.start.toISOString();
-    const end = event.end ? event.end.toISOString() : null;
+    const start = toLocalISOString(event.start);
+    const end = event.end ? toLocalISOString(event.end) : null;
 
     try {
       const res = await fetch(`/calendar/events/${id}`, {
