@@ -302,3 +302,14 @@ input:focus, select:focus, textarea:focus {
 body.forge-shake {
   animation: forgeShake 0.4s ease;
 }
+
+/* Forge AI modal scroll & alignment */
+#float-response {
+  display: block;
+  width: 100%;
+  text-align: left;
+  max-height: 200px;     /* adjust as needed */
+  overflow-y: auto;       /* vertical scroll */
+  padding: 0.5rem;
+  background-color: #212529;
+}
