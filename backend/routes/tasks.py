@@ -223,10 +223,21 @@ def todays_calendar_events():
 
     return jsonify(events)
 
-@tasks.route('/tasks/task_list_partial')
+@tasks.route('/tasks/partial_task_list')
 @login_required
 def task_list_partial():
-    tasks = Task.query.filter_by(user_id=current_user.id).order_by(Task.created_at.desc()).all()
+    # Re-query all tasks and render just the partial
+    all_tasks = Task.query \
+        .filter_by(user_id=current_user.id) \
+        .order_by(Task.created_at.desc()) \
+        .all()
+
     now = datetime.now()
     tomorrow = now.date() + timedelta(days=1)
-    return render_template('partials/task_list.html', tasks=tasks, now=now, tomorrow=tomorrow)
+
+    return render_template(
+        'partials/task_list.html',
+        tasks=all_tasks,
+        now=now,
+        tomorrow=tomorrow
+    )

@@ -28,7 +28,7 @@ def ask_gpt():
     user_memory = Memory.query.filter_by(user_id=current_user.id).order_by(Memory.created_at.desc()).limit(7).all()
 
     task_summary = "\n".join([
-        f"- {'[✔]' if t.completed else '[ ]'} {t.description} | Due: {t.due_date.strftime('%Y-%m-%d') if t.due_date else 'None'} | Priority: {t.priority or 'Normal'} | Recurring: {t.recurring or 'None'}"
+        f"- {'[✔]' if t.completed else '[ ]'} {t.description} | Due: {t.end_datetime.strftime('%Y-%m-%d') if t.end_datetime else 'None'} | Priority: {t.priority or 'Normal'} | Recurring: {t.recurring or 'None'}"
         for t in user_tasks
     ])
     session_summary = "\n".join([
@@ -94,7 +94,7 @@ def ask_gpt():
         ask_form=ask_form,
         response=response,
         streak=calculate_streak(user_tasks),
-        now=datetime.utcnow().date()
+        now=datetime.now().date()
     )
 
 
@@ -114,12 +114,12 @@ def blacksmith_page():
         ask_form=ask_form,
         response=None,
         streak=calculate_streak(tasks),
-        now=datetime.utcnow().date()
+        now=datetime.now().date()
     )
 
 def calculate_streak(tasks):
     days = {t.created_at.date() for t in tasks if t.completed}
-    today = datetime.utcnow().date()
+    today = datetime.now().date()
     streak = 0
     while today in days:
         streak += 1

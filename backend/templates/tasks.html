@@ -9,7 +9,38 @@
 
 <!-- Statistics -->
 <div class="row g-3 mb-4">
-  <!-- Your stat cards here (unchanged) -->
+  <div class="col-md-3">
+    <div class="card text-center border border-secondary">
+      <div class="card-body">
+        <h6>Total Tasks</h6>
+        <h3>{{ tasks|length }}</h3>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card text-center border border-secondary">
+      <div class="card-body">
+        <h6>Completed</h6>
+        <h3>{{ completed_tasks|length }}</h3>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card text-center border border-secondary">
+      <div class="card-body">
+        <h6>Streak</h6>
+        <h3>{{ streak }}</h3>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card text-center border border-secondary">
+      <div class="card-body">
+        <h6>Today's Tasks</h6>
+        <h3>{{ tasks|selectattr("start_datetime", "equalto", now.date())|list|length }}</h3>
+      </div>
+    </div>
+  </div>
 </div>
 
 <div class="row">
@@ -162,60 +193,71 @@
   });
   
   async function toggleTaskComplete(taskId) {
+      // 1) grab the checkbox element
+      const checkbox = document.getElementById(`checkbox-${taskId}`);
+      if (!checkbox) {
+          console.error('No checkbox found for', taskId);
+          return;
+      }
+
+      // 2) read its new checked state
+      const isCompleted = checkbox.checked;
+
+      try {
+          // 3) tell the server exactly what you want
+          const res = await fetch(`/toggle_task/${taskId}`, {
+              method: 'POST',
+              headers: {
+                  'Content-Type': 'application/json',
+                  'X-CSRFToken': document.getElementById('global-csrf-token').value
+              },
+              body: JSON.stringify({ completed: isCompleted })
+          });
+          const data = await res.json();
+          if (data.status !== 'success') {
+              console.error('Toggle failed');
+              return;
+          }
+
+          // 4) reload your task lists from the server so the DOM truly matches
+          await reloadTaskLists();
+
+          // 5) and refresh the mini‐calendar if you have one
+          if (typeof miniCalendar !== 'undefined') {
+              const events = await fetch('/tasks/todays_calendar_events').then(r=>r.json());
+              miniCalendar.removeAllEvents();
+              miniCalendar.addEventSource(events);
+          }
+
+      } catch (err) {
+          console.error('Error toggling task completion:', err);
+      }
+  }
+
+
+  async function reloadTaskLists() {
     try {
-        const res = await fetch(`/toggle_task/${taskId}`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': document.getElementById('global-csrf-token').value
-            },
-            body: JSON.stringify({})
-        });
+        const resp = await fetch('/tasks/partial_task_list');
+        const html = await resp.text();
+        const dom  = new DOMParser().parseFromString(html, 'text/html');
 
-        const data = await res.json();
-        if (data.status !== 'success') {
-            console.error('Toggle failed');
-            return;
+        const newActive    = dom.getElementById('activeTasksList');
+        const newCompleted = dom.getElementById('completedTasksList');
+        if (newActive && newCompleted) {
+            document.getElementById('activeTasksList').innerHTML    = newActive.innerHTML;
+            document.getElementById('completedTasksList').innerHTML = newCompleted.innerHTML;
+
+            // ** Update the completed‐tasks button count **
+            const completedCount = 
+              document.querySelectorAll('#completedTasksList li[id^="task-"]').length;
+            document.getElementById('toggleCompletedBtn').textContent =
+              `Show Completed Tasks (${completedCount})`;
         }
-
-        // ✅ After successful toggle, reload the task list partial
-        await reloadTaskList();
-
-        // ✅ Refresh mini calendar too
-        if (typeof miniCalendar !== 'undefined') {
-            const events = await fetch('/tasks/todays_calendar_events').then(r => r.json());
-            miniCalendar.removeAllEvents();
-            miniCalendar.addEventSource(events);
-        }
-
-    } catch (error) {
-        console.error('Error toggling task completion:', error);
+    } catch (err) {
+        console.error('Error reloading task lists:', err);
     }
 }
 
-// New helper function
-async function reloadTaskList() {
-    try {
-        const response = await fetch('/tasks/task_list_partial');
-        const html = await response.text();
-
-        const parser = new DOMParser();
-        const doc = parser.parseFromString(html, 'text/html');
-
-        const newActiveList = doc.getElementById('activeTasksList');
-        const newCompletedList = doc.getElementById('completedTasksList');
-
-        if (newActiveList && newCompletedList) {
-            document.getElementById('activeTasksList').innerHTML = newActiveList.innerHTML;
-            document.getElementById('completedTasksList').innerHTML = newCompletedList.innerHTML;
-        }
-
-        // Optionally update the "Show Completed Tasks (X)" button text too
-
-    } catch (error) {
-        console.error('Error reloading task list:', error);
-    }
-}
 
 
 

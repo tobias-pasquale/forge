@@ -20,6 +20,46 @@
 
 ## 📁 Project Structure
 
+/forge/                            # Project root (version-controlled)
+├── app.py                         # Entrypoint for production/gunicorn
+├── config.py                      # App settings (prod/dev/test modes)
+/backend/                          # All Flask logic lives here
+│   ├── __init__.py                # App factory pattern
+│   ├── models/                    # SQLAlchemy ORM models
+│   │   ├── user.py
+│   │   ├── task.py
+│   │   ├── calendar_event.py
+│   │   └── deep_work.py
+│   ├── routes/                    # Blueprints
+│   │   ├── core.py
+│   │   ├── auth.py
+│   │   ├── tasks.py
+│   │   ├── calendar.py
+│   │   └── forge_ai.py
+│   ├── services/                  # ForgeMind, AI logic, integrations
+│   │   └── forgemind.py
+│   ├── templates/                 # Jinja2 HTML templates
+│   │   ├── base.html
+│   │   ├── login.html
+│   │   ├── dashboard.html
+│   │   └── calendar.html
+│   └── extensions.py              # LoginManager, DB, etc.
+│
+/frontend/                         # Static & design assets
+│   ├── static/                    # CSS, JS, fonts, assets
+│   │   ├── styles.css
+│   │   └── darkmode.css
+│   └── js/                        # Optional future Vue/React/PureJS
+│       └── forge_ai.js
+│
+/migrations/                       # Flask-Migrate directory
+/env/                              # Git-ignored virtual env (dev only)
+.gitignore
+.env.example
+init_db.py                         # DB seeding/setup
+Procfile                           # For Render deployment
+README.md
+requirements.txt
 
 
 
